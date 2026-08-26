@@ -1,0 +1,153 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { DefindexSDK, SupportedNetworks } from '@defindex/sdk';
+import type { Env } from '../config/env';
+import { APP_CONFIG } from '../config/config.module';
+
+export const DEFINDEX_SDK = 'DEFINDEX_SDK';
+
+/**
+ * Maps the app's stellarNetwork string to the SDK's SupportedNetworks enum.
+ * 'testnet' → SupportedNetworks.TESTNET
+ * 'public'  → SupportedNetworks.MAINNET
+ */
+function toSdkNetwork(network: Env['stellarNetwork']): SupportedNetworks {
+  return network === 'testnet'
+    ? SupportedNetworks.TESTNET
+    : SupportedNetworks.MAINNET;
+}
+
+const DEFAULT_SLIPPAGE_BPS = 50;
+
+function assertSafeInteger(amount: bigint): void {
+  if (amount > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error('amount exceeds safe integer range for SDK');
+  }
+}
+
+/**
+ * DeFindex error 124 (`AmountOverTotalSupply`): a simulação de saldo falha quando
+ * o vault está vazio (total_supply 0) — vale pra qualquer endereço. A posição é 0
+ * e o erro some sozinho no primeiro depósito, então não é ruído digno de warn.
+ */
+function isEmptyVaultBalanceError(e: unknown): boolean {
+  if (e && typeof e === 'object') {
+    const err = e as { errorCode?: unknown; message?: unknown };
+    if (err.errorCode === 124) return true;
+    if (
+      typeof err.message === 'string' &&
+      err.message.includes('AmountOverTotalSupply')
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+@Injectable()
+export class VaultService {
+  private readonly network: SupportedNetworks;
+  private readonly vaultAddress: string;
+
+  constructor(
+    @Inject(DEFINDEX_SDK) private readonly sdk: DefindexSDK,
+    @Inject(APP_CONFIG) private readonly config: Env,
+  ) {
+    this.network = toSdkNetwork(config.stellarNetwork);
+    this.vaultAddress = config.vaultAddress;
+  }
+
+  /**
+   * Build a deposit transaction XDR.
+   * Returns { xdr } for the caller to sign and submit.
+   */
+  async buildDeposit(caller: string, amount: bigint): Promise<{ xdr: string }> {
+    assertSafeInteger(amount);
+    const response = await this.sdk.depositToVault(
+      this.vaultAddress,
+      {
+        amounts: [Number(amount)],
+        caller,
+        invest: true,
+        slippageBps: DEFAULT_SLIPPAGE_BPS,
+      },
+      this.network,
+    );
+
+    if (response.xdr === null) {
+      throw new Error('depositToVault returned null xdr');
+    }
+
+    return { xdr: response.xdr };
+  }
+
+  /**
+   * Build a withdraw transaction XDR.
+   * Returns { xdr } for the caller to sign and submit.
+   */
+  async buildWithdraw(
+    caller: string,
+    amount: bigint,
+  ): Promise<{ xdr: string }> {
+    assertSafeInteger(amount);
+    const response = await this.sdk.withdrawFromVault(
+      this.vaultAddress,
+      {
+        amounts: [Number(amount)],
+        caller,
+        slippageBps: DEFAULT_SLIPPAGE_BPS,
+      },
+      this.network,
+    );
+
+    if (response.xdr === null) {
+      throw new Error('withdrawFromVault returned null xdr');
+    }
+
+    return { xdr: response.xdr };
+  }
+
+  /**
+   * Get the vault's current APY as a percentage string.
+   * Returned as a string because downstream SpendableView.apyPercent is a
+   * string surfaced directly by the dashboard.
+   */
+  async getApyPercent(): Promise<string> {
+    try {
+      const response = await this.sdk.getVaultAPY(
+        this.vaultAddress,
+        this.network,
+      );
+      return String(response.apy);
+    } catch (e) {
+      console.warn('[VaultService] getVaultAPY failed, returning 0:', e);
+      return '0';
+    }
+  }
+
+  /**
+   * Get the user's position value in the vault, in the underlying asset's
+   * base units (XLM stroops for the native vault, 7 decimals).
+   *
+   * Uses the DeFindex SDK's `underlyingBalance` — the real redeemable value of
+   * the user's shares — NOT the raw `dfTokens` share count. Share price drifts
+   * above 1 as the vault earns yield, so dfTokens < underlyingBalance; reporting
+   * dfTokens would understate the position (e.g. a 5000 XLM deposit shows as
+   * ~4998 shares but is worth ~5000 XLM underlying).
+   */
+  async getPositionValue(userAddress: string): Promise<bigint> {
+    try {
+      const response = await this.sdk.getVaultBalance(
+        this.vaultAddress,
+        userAddress,
+        this.network,
+      );
+      return BigInt(response.underlyingBalance?.[0] ?? 0);
+    } catch (e) {
+      // Vault vazio → posição 0, silencioso (ver isEmptyVaultBalanceError).
+      if (!isEmptyVaultBalanceError(e)) {
+        console.warn('[VaultService] getVaultBalance failed, returning 0n:', e);
+      }
+      return 0n;
+    }
+  }
+}

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: yield2pay
+      POSTGRES_USER: yield2pay
+      POSTGRES_PASSWORD: yield2pay
+    ports:
+      - "5433:5432"
+    volumes:
+      # postgres:18 moved the default PGDATA to /var/lib/postgresql (was
+      # /var/lib/postgresql/data on 16/17). Mount the parent dir accordingly.
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

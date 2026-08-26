@@ -1,0 +1,119 @@
+/* Design tokens */
+@import "./tokens/typography.css";
+@import "./tokens/colors.css";
+@import "./tokens/spacing.css";
+@import "./tokens/radius.css";
+@import "./tokens/shadows.css";
+@import "./tokens/motion.css";
+@import "./tokens/base.css";
+
+/* ── Global resets & helmet-level CSS ─────────────────────────────────────────
+   Body reset, ::selection and :focus-visible live in tokens/base.css (imported
+   above). Here we keep only what base.css does not cover plus the shared
+   brushed-metal / sweep / shine effect classes and their keyframes. */
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { overflow-x: hidden; }
+
+h1, h2 {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .13), 0 -1px 1px rgba(0, 0, 0, .6);
+}
+
+/* ── Brushed metal surface ─────────────────────────────────────────────────── */
+
+.brushed {
+  position: relative;
+  background: linear-gradient(135deg, #3c3f44 0%, #26282c 26%, #16181b 52%, #303338 74%, #1b1d21 100%);
+}
+.brushed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(118deg, rgba(255,255,255,.04) 0, rgba(255,255,255,.04) 1px, transparent 1px, transparent 4px);
+  opacity: .5;
+  pointer-events: none;
+}
+
+/* ── Light sweep — loop on hero/CTA ───────────────────────────────────────── */
+
+.sweep {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 42%;
+  z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.26), transparent);
+  transform: translateX(-130%) skewX(-12deg);
+  animation: sweepX 6.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Sheen — single pass on card hover ────────────────────────────────────── */
+
+.msheen {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 55%;
+  z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+  transform: translateX(-130%) skewX(-12deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.mcard:hover .msheen { animation: sweepOnce .9s ease; opacity: 1; }
+
+/* ── Chrome button shine ──────────────────────────────────────────────────── */
+
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 26%, rgba(255,255,255,.5) 48%, transparent 68%);
+  transform: translateX(-135%);
+  transition: transform .6s ease;
+  pointer-events: none;
+}
+.btn-shine:hover::before { transform: translateX(135%); }
+
+/* ── Keyframes ────────────────────────────────────────────────────────────── */
+
+@keyframes sweepX {
+  0% { transform: translateX(-130%) skewX(-12deg); }
+  55%, 100% { transform: translateX(130%) skewX(-12deg); }
+}
+@keyframes sweepOnce {
+  0% { transform: translateX(-130%) skewX(-12deg); }
+  100% { transform: translateX(170%) skewX(-12deg); }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes revealIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Telas de erro ────────────────────────────────────────────────────────── */
+
+/* Painel técnico (só staging): rótulo à esquerda, valor à direita; no celular
+   os dois empilham porque o valor — endpoint, stack — não cabe em coluna. */
+.err-fields {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  gap: 10px 16px;
+}
+.err-scroll::-webkit-scrollbar { width: 9px; }
+.err-scroll::-webkit-scrollbar-thumb { background: #2A2D31; border-radius: 999px; }
+
+@media (max-width: 520px) {
+  .err-fields { grid-template-columns: 1fr; gap: 3px 0; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .sweep, .msheen, .btn-shine::before { animation: none; }
+  html { scroll-behavior: auto; }
+}
