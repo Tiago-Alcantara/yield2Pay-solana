@@ -1,56 +1,60 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { VaultService } from '../vault/vault.service';
-import { StellarService } from '../stellar/stellar.service';
+import { SolanaService } from '../solana/solana.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { WalletService } from '../wallet/wallet.service';
 import { parseBaseUnits } from '../common/parse-money';
-import { BuildTxResponse, SubmitTxDto } from '@yield2pay/shared';
+import type { BuildTxResponse, SubmitTxDto } from '@yield2pay/shared';
 
-// Safety cap on a single deposit. Bound it well above expected deposits
-// (10000 XLM); adjust to the real product limit later.
-const MAX_DEPOSIT_BASE_UNITS = 100_000_000_000n; // 10000 XLM (7 decimals)
+// Teto de segurança para um aporte único: 10.000 USDC em base units (6 casas).
+// Bem acima do aporte esperado de uma família; ajustar ao limite real do produto.
+const MAX_DEPOSIT_BASE_UNITS = 10_000_000_000n;
 
 @Injectable()
 export class DepositService {
   constructor(
     private readonly vault: VaultService,
-    private readonly stellar: StellarService,
+    private readonly solana: SolanaService,
     private readonly ledger: LedgerService,
     private readonly wallet: WalletService,
   ) {}
 
-  async build(companyId: string, amount: bigint): Promise<BuildTxResponse> {
+  async build(householdId: string, amount: bigint): Promise<BuildTxResponse> {
     if (amount > MAX_DEPOSIT_BASE_UNITS) {
       throw new BadRequestException('amount exceeds maximum deposit');
     }
-    // Cofre USDC: o valor vem do on-ramp (USDC recebido), não do saldo XLM
-    // nativo. Não checamos saldo nativo aqui — o depósito falha on-chain se a
-    // carteira não tiver USDC. O buffer de XLM segue só p/ fees/reserve.
-    const address = await this.wallet.getAddress(companyId);
-    const { xdr } = await this.vault.buildDeposit(address, amount);
-    const { hash } = this.stellar.hashForSigning(xdr);
-    return { xdr, hash };
+    // Não checamos saldo aqui: o aporte falha on-chain se a carteira não tiver
+    // USDC, e a simulação da própria transação já dá o erro melhor descrito.
+    const address = await this.wallet.getAddress(householdId);
+    const instructions = await this.vault.buildDepositInstructions(
+      address,
+      amount,
+    );
+    return this.solana.buildSponsoredTransaction(instructions);
   }
 
   async submit(
-    companyId: string,
+    householdId: string,
     dto: SubmitTxDto,
-  ): Promise<{ txHash: string }> {
-    const registered = await this.wallet.getAddress(companyId);
-    if (dto.stellarAddress !== registered) {
-      throw new ForbiddenException('stellar address does not match registered wallet');
+  ): Promise<{ txSignature: string }> {
+    const registered = await this.wallet.getAddress(householdId);
+    if (dto.solanaAddress !== registered) {
+      throw new ForbiddenException(
+        'solana address does not match registered wallet',
+      );
     }
-    const { txHash } = await this.stellar.attachAndSubmit(
-      dto.xdr,
-      dto.stellarAddress,
-      dto.signatureHex,
+    const { txSignature } = await this.solana.submitSignedTransaction(
+      dto.signedTransactionBase64,
     );
     await this.ledger.recordDeposit(
-      companyId,
+      householdId,
       parseBaseUnits(dto.amount),
-      txHash,
-      dto.rampOrderId,
+      txSignature,
     );
-    return { txHash };
+    return { txSignature };
   }
 }

@@ -6,7 +6,7 @@
  * O botão "Sacar meu saldo" existe no painel do design, mas a tela em si não
  * foi desenhada. Esta é a versão mínima na mesma linguagem visual, para o fluxo
  * não terminar em beco sem saída: valor, chave PIX de destino e confirmação.
- * Quando DeFindex entrar, `withdraw()` vira o resgate no cofre.
+ * Quando a Kamino entrar, `withdraw()` vira o resgate no cofre.
  */
 
 import React, { useState } from 'react';

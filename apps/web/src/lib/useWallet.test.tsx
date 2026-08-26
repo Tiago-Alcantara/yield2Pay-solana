@@ -2,16 +2,15 @@
  * Tests for useWallet hook.
  *
  * Mocks:
- *   - @privy-io/react-auth        → usePrivy
- *   - @privy-io/react-auth/extended-chains → useCreateWallet
- *   - ../lib/api (via module-level mock of createApi factory)
+ *   - @privy-io/react-auth         → usePrivy
+ *   - @privy-io/react-auth/solana  → useCreateWallet
+ *   - ./api (via module-level mock of createApi factory)
  *
  * We do NOT import the real Privy SDK — tests must run without a Privy app id.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import React from 'react';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -22,7 +21,7 @@ vi.mock('@privy-io/react-auth', () => ({
   usePrivy: vi.fn(),
 }));
 
-vi.mock('@privy-io/react-auth/extended-chains', () => ({
+vi.mock('@privy-io/react-auth/solana', () => ({
   useCreateWallet: vi.fn(() => ({ createWallet: mockCreateWallet })),
 }));
 
@@ -39,12 +38,12 @@ import { useWallet } from './useWallet';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeUserWithStellarWallet(address: string) {
+function makeUserWithSolanaWallet(address: string) {
   return {
     linkedAccounts: [
       {
         type: 'wallet' as const,
-        chainType: 'stellar',
+        chainType: 'solana',
         walletClientType: 'privy',
         address,
         connectorType: 'embedded',
@@ -53,7 +52,7 @@ function makeUserWithStellarWallet(address: string) {
   };
 }
 
-function makeUserWithoutStellarWallet() {
+function makeUserWithoutSolanaWallet() {
   return {
     linkedAccounts: [
       {
@@ -75,9 +74,9 @@ describe('useWallet', () => {
     mockRegisterWallet.mockResolvedValue(undefined);
   });
 
-  it('returns address from existing stellar wallet and calls registerWallet once', async () => {
-    const stellarAddress = 'GBEXISTING123';
-    const mockUser = makeUserWithStellarWallet(stellarAddress);
+  it('returns address from existing solana wallet and calls registerWallet once', async () => {
+    const solanaAddress = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+    const mockUser = makeUserWithSolanaWallet(solanaAddress);
 
     (usePrivy as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockUser,
@@ -91,17 +90,17 @@ describe('useWallet', () => {
       address = await result.current.ensureWallet();
     });
 
-    expect(address!).toBe(stellarAddress);
+    expect(address!).toBe(solanaAddress);
     // createWallet should NOT have been called
     expect(mockCreateWallet).not.toHaveBeenCalled();
-    // registerWallet should have been called exactly once with the stellar address
+    // registerWallet should have been called exactly once with the solana address
     expect(mockRegisterWallet).toHaveBeenCalledOnce();
-    expect(mockRegisterWallet).toHaveBeenCalledWith({ stellarAddress });
+    expect(mockRegisterWallet).toHaveBeenCalledWith({ solanaAddress });
   });
 
-  it('creates a stellar wallet when none exists, then registers it', async () => {
-    const newStellarAddress = 'GBNEWWALLET456';
-    const mockUser = makeUserWithoutStellarWallet();
+  it('creates a solana wallet when none exists, then registers it', async () => {
+    const newSolanaAddress = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+    const mockUser = makeUserWithoutSolanaWallet();
 
     (usePrivy as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockUser,
@@ -109,7 +108,7 @@ describe('useWallet', () => {
     });
 
     mockCreateWallet.mockResolvedValue({
-      wallet: { address: newStellarAddress, chainType: 'stellar' },
+      wallet: { address: newSolanaAddress, chainType: 'solana' },
       user: { linkedAccounts: [] },
     });
 
@@ -120,19 +119,21 @@ describe('useWallet', () => {
       address = await result.current.ensureWallet();
     });
 
-    // createWallet must have been called with chainType:'stellar'
+    // O hook de Solana não recebe chainType — o próprio módulo já é da rede.
     expect(mockCreateWallet).toHaveBeenCalledOnce();
-    expect(mockCreateWallet).toHaveBeenCalledWith({ chainType: 'stellar' });
+    expect(mockCreateWallet).toHaveBeenCalledWith();
 
-    expect(address!).toBe(newStellarAddress);
+    expect(address!).toBe(newSolanaAddress);
 
     // registerWallet must be called with the new address
     expect(mockRegisterWallet).toHaveBeenCalledOnce();
-    expect(mockRegisterWallet).toHaveBeenCalledWith({ stellarAddress: newStellarAddress });
+    expect(mockRegisterWallet).toHaveBeenCalledWith({
+      solanaAddress: newSolanaAddress,
+    });
   });
 
-  it('exposes address as null when user has no stellar wallet yet', () => {
-    const mockUser = makeUserWithoutStellarWallet();
+  it('exposes address as null when user has no solana wallet yet', () => {
+    const mockUser = makeUserWithoutSolanaWallet();
 
     (usePrivy as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockUser,
@@ -143,9 +144,9 @@ describe('useWallet', () => {
     expect(result.current.address).toBeNull();
   });
 
-  it('exposes address when user already has a stellar wallet', () => {
-    const stellarAddress = 'GBHASONE789';
-    const mockUser = makeUserWithStellarWallet(stellarAddress);
+  it('exposes address when user already has a solana wallet', () => {
+    const solanaAddress = 'DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1';
+    const mockUser = makeUserWithSolanaWallet(solanaAddress);
 
     (usePrivy as ReturnType<typeof vi.fn>).mockReturnValue({
       user: mockUser,
@@ -153,6 +154,6 @@ describe('useWallet', () => {
     });
 
     const { result } = renderHook(() => useWallet());
-    expect(result.current.address).toBe(stellarAddress);
+    expect(result.current.address).toBe(solanaAddress);
   });
 });

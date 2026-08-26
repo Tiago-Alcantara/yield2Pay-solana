@@ -1,31 +1,93 @@
-export type BillType = 'software' | 'utility' | 'other';
-export interface RegisterWalletDto { stellarAddress: string; }
-export interface BuildTxResponse { xdr: string; hash: string; }
-export interface SubmitTxDto { xdr: string; signatureHex: string; stellarAddress: string; amount: string; rampOrderId?: string; }
-export interface SubmitTxResponse { txHash: string; }
-export interface CreateBillDto { vendor: string; monthlyCost: string; type: BillType; }
-export interface Bill { id: string; vendor: string; monthlyCost: string; type: BillType; status: string; }
-export interface SpendableView { vaultValue: string; principal: string; spendable: string; apyPercent: string; returnsChangePercent: string | null; }
-export interface WalletBalanceView { balance: string; spendable: string; }
+// ── Família ───────────────────────────────────────────────────────────────────
 
-// ── Ramp (Etherfuse on/off-ramp) ──────────────────────────────────────────────
-export interface RampStatus { onboarded: boolean; kycStatus: string | null; ready: boolean; fiatCurrency: string; }
-export interface RampSetupResult { onboardingUrl: string; customerId: string; ready: boolean; }
-export interface OnrampResult {
-  orderId: string; quoteId: string; fiatCurrency: string; targetAmount: string; feeAmount: string;
-  depositClabe: string; depositBankName: string; statusPage: string; expiresAt: string;
+/** Categoria da assinatura que o rendimento deve cobrir. */
+export type SubCategory = 'streaming' | 'utility' | 'education' | 'other';
+
+export interface CreateSubDto {
+  name: string;
+  /** USDC em base units (6 casas). */
+  monthlyCost: string;
+  category: SubCategory;
+  /** Posição na fila de cobertura. Menor = pago primeiro. Default: fim da lista. */
+  priority?: number;
+  memberId?: string;
 }
-export interface OfframpResult {
-  orderId: string; quoteId: string; fiatCurrency: string; targetAmount: string; feeAmount: string;
-  burnTransaction: string | null; statusPage: string; expiresAt: string;
+
+export interface Sub {
+  id: string;
+  name: string;
+  monthlyCost: string;
+  category: SubCategory;
+  priority: number;
+  status: string;
+  memberId: string | null;
 }
-export interface RampOrderStatus { orderId: string; status: string; burnTransaction?: string; }
-export interface OrderClaim { skip: boolean; xdr?: string; hash?: string; }
-export interface OrderBurn { ready: boolean; xdr?: string; hash?: string; }
-export interface SubmitClaimDto { xdr: string; signatureHex: string; stellarAddress: string; }
-export interface RampOrder {
-  id: string; orderId: string; type: string; status: string;
-  amountFiat: string | null; amountToken: string | null; createdAt: string;
+
+/** Reordena a fila de cobertura: a posição no array é a nova prioridade. */
+export interface ReorderSubsDto {
+  subIds: string[];
+}
+
+export interface CreateMemberDto {
+  name: string;
+}
+
+export interface Member {
+  id: string;
+  name: string;
+  isOwner: boolean;
+}
+
+// ── Carteira e transações (Solana) ────────────────────────────────────────────
+
+export interface RegisterWalletDto {
+  /** Endereço da carteira embedded Solana (base58). */
+  solanaAddress: string;
+}
+
+/**
+ * Transação montada pela API, serializada em base64.
+ *
+ * O sponsor (tesouraria) já vem como feePayer e com a assinatura dele anexada —
+ * o cliente só acrescenta a própria assinatura e devolve. É o que substitui o
+ * fee-bump da Stellar: na Solana o patrocínio de taxa é o próprio feePayer.
+ */
+export interface BuildTxResponse {
+  transactionBase64: string;
+}
+
+export interface SubmitTxDto {
+  /** Transação já assinada pelo cliente, base64. */
+  signedTransactionBase64: string;
+  solanaAddress: string;
+  /** USDC em base units (6 casas). Registrado no livro após confirmação. */
+  amount: string;
+}
+
+export interface SubmitTxResponse {
+  /** Assinatura da transação Solana (base58). */
+  txSignature: string;
+}
+
+export interface WalletBalanceView {
+  /** Saldo USDC da carteira em base units (6 casas). */
+  balance: string;
+  /**
+   * Quanto dá para aportar. Na Solana o sponsor paga a taxa e o aluguel da ATA,
+   * então não há reserva retida: spendable == balance. O campo permanece porque
+   * as telas já o consomem e porque um dia o cliente pode pagar a própria taxa.
+   */
+  spendable: string;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+export interface SpendableView {
+  vaultValue: string;
+  principal: string;
+  spendable: string;
+  apyPercent: string;
+  returnsChangePercent: string | null;
 }
 
 // ── Erros (contrato entre a API e as telas de erro) ───────────────────────────

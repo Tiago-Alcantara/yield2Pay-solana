@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 /**
  * Layout de /family — a vertical de famílias.
  *
- * Diferente de (app), aqui não há AuthGate: Privy e DeFindex entram numa
+ * Aqui ainda não há AuthGate: Privy e Kamino entram numa
  * segunda etapa. Por ora o FamilyProvider guarda todo o estado das telas
  * (depósito, assinaturas, preferências) no cliente, para os fluxos poderem ser
  * percorridos de ponta a ponta.

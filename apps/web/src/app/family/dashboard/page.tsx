@@ -4,7 +4,7 @@
  * Painel da família — /family/dashboard
  *
  * Reproduz a tela "dashboard" de design/nemPages/Yield2Pay Famílias App.dc.html:
- * percentual de liberdade, saldo, o cofre (DeFindex, ainda mock) e a lista de
+ * percentual de liberdade, saldo, o cofre (Kamino, ainda mock) e a lista de
  * assinaturas ordenada por prioridade.
  */
 

@@ -1,10 +1,16 @@
-const DECIMALS = 7;
+/**
+ * Casas decimais do USDC na Solana. A Stellar usava 7 (stroops); o mint do USDC
+ * na Solana usa 6. Precisa casar com USDC_DECIMALS do backend
+ * (apps/api/src/common/parse-money.ts) — se divergir, os valores saem 10x
+ * errados sem erro nenhum.
+ */
+const DECIMALS = 6;
 const DISPLAY_DECIMALS = 2;
 
 export function formatUsdc(baseUnits: string): string {
   const neg = baseUnits.startsWith('-');
   const raw = (neg ? baseUnits.slice(1) : baseUnits) || '0';
-  // Round base units (7 dp) down to DISPLAY_DECIMALS, half-up.
+  // Round base units (6 dp) down to DISPLAY_DECIMALS, half-up.
   const scale = BigInt(10) ** BigInt(DECIMALS - DISPLAY_DECIMALS);
   const rounded = (BigInt(raw) + scale / BigInt(2)) / scale;
   const digits = rounded.toString().padStart(DISPLAY_DECIMALS + 1, '0');

@@ -6,6 +6,7 @@ import { LedgerService } from '../ledger/ledger.service';
 @Injectable()
 export class SnapshotJob {
   private readonly log = new Logger(SnapshotJob.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly ledger: LedgerService,
@@ -17,16 +18,16 @@ export class SnapshotJob {
   }
 
   async runOnce(): Promise<{ count: number }> {
-    const companies = await this.prisma.company.findMany({
+    const households = await this.prisma.household.findMany({
       where: { wallet: { isNot: null } },
       select: { id: true },
     });
-    // Snapshots de companies diferentes são independentes → rodam em paralelo.
+    // Snapshots de famílias diferentes são independentes → rodam em paralelo.
     // allSettled: uma falha não derruba as demais; contamos só os sucessos.
-    // (Se a base de companies crescer muito, limitar a concorrência em lotes
-    // para não saturar o RPC/vault de uma vez.)
+    // (Se a base de famílias crescer muito, limitar a concorrência em lotes
+    // para não saturar o RPC/cofre de uma vez.)
     const results = await Promise.allSettled(
-      companies.map((company) => this.ledger.snapshot(company.id)),
+      households.map((household) => this.ledger.snapshot(household.id)),
     );
     let count = 0;
     results.forEach((result, index) => {
@@ -34,7 +35,7 @@ export class SnapshotJob {
         count++;
       } else {
         this.log.error(
-          `snapshot failed for ${companies[index].id}: ${String(result.reason)}`,
+          `snapshot failed for ${households[index].id}: ${String(result.reason)}`,
         );
       }
     });

@@ -22,16 +22,17 @@ services:
         fromDatabase:
           name: yield2pay-db
           property: connectionString
-      - key: STELLAR_NETWORK
-        value: testnet
+      - key: SOLANA_CLUSTER
+        value: devnet
       # Ambiente lógico. Em homologação use 'staging' para a resposta de erro
       # trazer technicalDetails; em produção deixe 'production'.
       - key: APP_ENV
         value: staging
-      - key: DEFINDEX_BASE_URL
-        value: https://api.defindex.io
-      - key: SOROBAN_RPC_URL
-        value: https://soroban-testnet.stellar.org
+      - key: SOLANA_RPC_URL
+        value: https://api.devnet.solana.com
+      # USDC devnet. Em mainnet: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+      - key: USDC_MINT
+        value: 4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
       # Set this to your deployed web origin (Vercel), e.g. https://yield2pay.vercel.app
       - key: CORS_ORIGIN
         sync: false
@@ -40,11 +41,9 @@ services:
         sync: false
       - key: PRIVY_APP_SECRET
         sync: false
-      - key: DEFINDEX_API_KEY
+      - key: KAMINO_MARKET_ADDRESS
         sync: false
-      - key: VAULT_ADDRESS
-        sync: false
-      - key: USDC_ADDRESS
+      - key: KAMINO_RESERVE_ADDRESS
         sync: false
       - key: FEE_SPONSOR_SECRET_KEY
         sync: false

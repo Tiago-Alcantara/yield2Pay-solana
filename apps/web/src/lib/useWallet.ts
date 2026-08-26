@@ -1,42 +1,46 @@
 'use client';
 
 import { usePrivy } from '@privy-io/react-auth';
-import { useCreateWallet } from '@privy-io/react-auth/extended-chains';
+import { useCreateWallet } from '@privy-io/react-auth/solana';
 import { createApi } from './api';
 
 /**
- * Returns the user's Stellar embedded wallet address (or null if none yet),
- * and an `ensureWallet()` function that finds or creates one and registers it
- * with the Yield2Pay backend (idempotent upsert).
+ * Devolve o endereço da carteira Solana embedded da família (ou null se ainda
+ * não existe) e um `ensureWallet()` que acha ou cria a carteira e a registra no
+ * backend (upsert idempotente).
  *
- * Non-custodial contract: we NEVER touch private keys — wallet creation and
- * signing are entirely Privy's responsibility. We only read the address.
+ * Contrato non-custodial: nunca tocamos chave privada — criar e assinar é
+ * responsabilidade do Privy. Aqui só lemos o endereço.
  */
-export function useWallet(): { address: string | null; ensureWallet: () => Promise<string> } {
+export function useWallet(): {
+  address: string | null;
+  ensureWallet: () => Promise<string>;
+} {
   const { user, getAccessToken } = usePrivy();
   const { createWallet } = useCreateWallet();
 
-  const stellarAccount = user?.linkedAccounts?.find(
-    (a) => a.type === 'wallet' && (a as { chainType: string }).chainType === 'stellar',
+  const solanaAccount = user?.linkedAccounts?.find(
+    (a) =>
+      a.type === 'wallet' &&
+      (a as { chainType: string }).chainType === 'solana',
   ) as { address: string } | undefined;
 
-  const address = stellarAccount?.address ?? null;
+  const address = solanaAccount?.address ?? null;
 
   async function ensureWallet(): Promise<string> {
     const api = createApi(getAccessToken);
 
-    if (stellarAccount) {
-      // Wallet already exists — just register (idempotent) and return the address.
-      await api.registerWallet({ stellarAddress: stellarAccount.address });
-      return stellarAccount.address;
+    if (solanaAccount) {
+      // Já existe — só registra (idempotente) e devolve o endereço.
+      await api.registerWallet({ solanaAddress: solanaAccount.address });
+      return solanaAccount.address;
     }
 
-    // No Stellar wallet yet — ask Privy to create one.
-    const { wallet } = await createWallet({ chainType: 'stellar' });
+    // Sem carteira Solana ainda — pede ao Privy para criar.
+    const { wallet } = await createWallet();
     const newAddress = wallet.address;
 
-    // Register with backend.
-    await api.registerWallet({ stellarAddress: newAddress });
+    await api.registerWallet({ solanaAddress: newAddress });
     return newAddress;
   }
 

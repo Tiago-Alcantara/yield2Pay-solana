@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Yield2Pay — vertical Família, sobre Solana.
+// Aprender mais em https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -11,117 +11,141 @@ datasource db {
 
 // ── Enums ──────────────────────────────────────────────────────────────────────
 
-enum BillType {
-  software
+enum SubCategory {
+  streaming
   utility
+  education
   other
 }
 
 // ── Models ─────────────────────────────────────────────────────────────────────
 
-model Company {
+/// A conta da família. É o tenant: tudo pertence a uma Household.
+/// Uma Household nasce no primeiro login (privyUserId do titular).
+model Household {
   id          String   @id @default(cuid())
   privyUserId String   @unique @map("privy_user_id")
+  displayName String?  @map("display_name")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  wallet            Wallet?
-  deposits          Deposit[]
-  snapshots         YieldSnapshot[]
-  bills             RecurringBill[]
-  etherfuseCustomer EtherfuseCustomer?
-  rampOrders        RampOrder[]
+  members   Member[]
+  wallet    Wallet?
+  deposits  Deposit[]
+  subs      Sub[]
+  positions VaultPosition[]
+  snapshots YieldSnapshot[]
 
-  @@map("companies")
+  @@map("households")
 }
 
-model EtherfuseCustomer {
-  id            String   @id @default(cuid())
-  companyId     String   @unique @map("company_id")
-  customerId    String   @map("customer_id")
-  bankAccountId String?  @map("bank_account_id")
-  walletId      String?  @map("wallet_id")
-  kycStatus     String   @default("pending") @map("kyc_status")
-  createdAt     DateTime @default(now()) @map("created_at")
+/// Pessoa da família. O titular tem privyUserId; dependentes ainda não logam,
+/// existem só para nomear quem usa cada assinatura.
+model Member {
+  id          String   @id @default(cuid())
+  householdId String   @map("household_id")
+  name        String
+  isOwner     Boolean  @default(false) @map("is_owner")
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  company Company @relation(fields: [companyId], references: [id])
+  household Household @relation(fields: [householdId], references: [id])
+  subs      Sub[]
 
-  @@map("etherfuse_customers")
+  @@index([householdId])
+  @@map("members")
 }
 
-model RampOrder {
-  id              String   @id @default(cuid())
-  companyId       String   @map("company_id")
-  orderId         String   @unique @map("order_id")
-  type            String
-  status          String   @default("created")
-  amountFiat      String?  @map("amount_fiat")
-  amountToken     String?  @map("amount_token")
-  burnTransaction String?  @map("burn_transaction")
-  depositClabe    String?  @map("deposit_clabe")
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  company Company @relation(fields: [companyId], references: [id])
-
-  @@index([companyId])
-  @@map("ramp_orders")
-}
-
+/// Carteira Solana embedded (Privy) da família.
+/// `usdcTokenAccount` é a ATA de USDC — criada pelo sponsor no registro, guardada
+/// aqui para não redescobrir o endereço derivado em cada request.
 model Wallet {
-  id             String   @id @default(cuid())
-  companyId      String   @unique @map("company_id")
-  stellarAddress String   @unique @map("stellar_address")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id               String   @id @default(cuid())
+  householdId      String   @unique @map("household_id")
+  solanaAddress    String   @unique @map("solana_address")
+  usdcTokenAccount String?  @map("usdc_token_account")
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  company Company @relation(fields: [companyId], references: [id])
+  household Household @relation(fields: [householdId], references: [id])
 
   @@map("wallets")
 }
 
+/// Livro de aportes. Saque entra como lançamento negativo — o principal é a
+/// soma agregada, então não há linha de "withdraw" separada.
 model Deposit {
-  id        String   @id @default(cuid())
-  companyId String   @map("company_id")
-  /// USDC amount in base units (7 decimal places)
-  amount    BigInt
-  txHash    String   @unique @map("tx_hash")
-  /// Liga o depósito à order de on-ramp (jornada Pix→cofre). Null = depósito direto.
-  rampOrderId String? @map("ramp_order_id")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(cuid())
+  householdId String   @map("household_id")
+  /// USDC em base units (6 casas decimais — padrão do mint USDC na Solana).
+  amount      BigInt
+  /// Assinatura da transação Solana (base58). Único: evita registrar duas vezes.
+  txSignature String   @unique @map("tx_signature")
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  company Company @relation(fields: [companyId], references: [id])
+  household Household @relation(fields: [householdId], references: [id])
 
-  // principal() agrega deposits por companyId; índice evita full-scan.
-  @@index([companyId])
+  // principal() agrega deposits por householdId; índice evita full-scan.
+  @@index([householdId])
   @@map("deposits")
 }
 
-model RecurringBill {
-  id          String   @id @default(cuid())
-  companyId   String   @map("company_id")
-  vendor      String
-  /// USDC amount in base units (7 decimal places)
-  monthlyCost BigInt   @map("monthly_cost")
-  type        BillType @default(software)
-  status      String   @default("active")
-  createdAt   DateTime @default(now()) @map("created_at")
+/// Assinatura recorrente que o rendimento deve cobrir (Netflix, luz, escola...).
+/// `priority` é a ordem da lista: quando o rendimento do mês não cobre tudo, as
+/// assinaturas de menor priority são pagas primeiro. É a regra que as telas de
+/// família já expõem ("a ordem da lista decide quais contas o rendimento cobre").
+model Sub {
+  id          String      @id @default(cuid())
+  householdId String      @map("household_id")
+  memberId    String?     @map("member_id")
+  name        String
+  /// USDC em base units (6 casas decimais).
+  monthlyCost BigInt      @map("monthly_cost")
+  category    SubCategory @default(streaming)
+  priority    Int         @default(0)
+  status      String      @default("active")
+  createdAt   DateTime    @default(now()) @map("created_at")
 
-  company Company @relation(fields: [companyId], references: [id])
+  household Household @relation(fields: [householdId], references: [id])
+  member    Member?   @relation(fields: [memberId], references: [id])
 
-  @@map("recurring_bills")
+  @@index([householdId, priority])
+  @@map("subs")
 }
 
+/// Espelho local da posição no cofre (Kamino). Existe para a UI não depender de
+/// uma chamada RPC viva a cada render, e para o snapshot diário ter de onde ler
+/// quando o RPC falha. A fonte da verdade continua sendo a chain.
+model VaultPosition {
+  id          String   @id @default(cuid())
+  householdId String   @unique @map("household_id")
+  /// Protocolo do cofre. Hoje só "kamino"; o campo evita migration se entrar outro.
+  protocol    String   @default("kamino")
+  /// Reserve/market da Kamino onde o USDC está aplicado.
+  reserveAddress String? @map("reserve_address")
+  /// Shares (cTokens) detidos, em base units do share.
+  shares      BigInt   @default(0)
+  /// Valor resgatável em USDC base units (6 casas), o que a UI mostra.
+  underlyingValue BigInt @default(0) @map("underlying_value")
+  syncedAt    DateTime @default(now()) @map("synced_at")
+
+  household Household @relation(fields: [householdId], references: [id])
+
+  @@map("vault_positions")
+}
+
+/// Foto diária de principal vs. valor do cofre. Base de comparação para a
+/// variação percentual do rendimento (~28 dias) mostrada no dashboard.
 model YieldSnapshot {
-  id         String   @id @default(cuid())
-  companyId  String   @map("company_id")
-  /// Vault value in base units (7 decimal places)
-  vaultValue BigInt   @map("vault_value")
-  /// Principal in base units (7 decimal places)
-  principal  BigInt
-  /// Spendable yield in base units (7 decimal places)
-  spendable  BigInt
-  createdAt  DateTime @default(now()) @map("created_at")
+  id          String   @id @default(cuid())
+  householdId String   @map("household_id")
+  /// Valor do cofre em USDC base units (6 casas).
+  vaultValue  BigInt   @map("vault_value")
+  /// Principal aportado em USDC base units (6 casas).
+  principal   BigInt
+  /// Rendimento gastável (vaultValue - principal) em USDC base units (6 casas).
+  spendable   BigInt
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  company Company @relation(fields: [companyId], references: [id])
+  household Household @relation(fields: [householdId], references: [id])
 
-  @@index([companyId, createdAt])
+  @@index([householdId, createdAt])
   @@map("yield_snapshots")
 }

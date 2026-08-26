@@ -8,13 +8,14 @@ import type { RegisterWalletDto } from '@yield2pay/shared';
 @UseGuards(AuthGuard)
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
+
   @Post()
   register(@Req() req: AuthenticatedRequest, @Body() body: RegisterWalletDto) {
-    return this.walletService.register(req.companyId, body.stellarAddress);
+    return this.walletService.register(req.householdId, body.solanaAddress);
   }
 
   @Get('balance')
   balance(@Req() req: AuthenticatedRequest) {
-    return this.walletService.getBalance(req.companyId);
+    return this.walletService.getBalance(req.householdId);
   }
 }

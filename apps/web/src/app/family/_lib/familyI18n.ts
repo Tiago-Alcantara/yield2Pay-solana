@@ -184,7 +184,7 @@ const pt = {
 
     vaultTitle: 'Seu cofre',
     vaultSub: 'Onde o seu depósito fica guardado enquanto rende',
-    vaultBadge: 'Cofre DeFindex · Código aberto',
+    vaultBadge: 'Cofre Kamino · Código aberto',
     vaultStored: 'Guardado no cofre',
     vaultNote:
       'Só a sua chave autoriza saídas. A Yield2Pay não guarda nem movimenta o seu saldo.',
@@ -622,7 +622,7 @@ const en: FamilyDict = {
 
     vaultTitle: 'Your vault',
     vaultSub: 'Where your deposit sits while it earns',
-    vaultBadge: 'DeFindex vault · Open source',
+    vaultBadge: 'Kamino vault · Open source',
     vaultStored: 'Held in the vault',
     vaultNote: 'Only your key authorises withdrawals. Yield2Pay neither holds nor moves your balance.',
     vaultDeposit: 'Deposit by PIX',

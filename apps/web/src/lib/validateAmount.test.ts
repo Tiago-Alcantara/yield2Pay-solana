@@ -18,8 +18,8 @@ describe('validateAmount', () => {
     expect(validateAmount('-5')).toBe('Enter a positive amount');
   });
 
-  it('rejects more than 7 decimals', () => {
-    expect(validateAmount('1.12345678')).toBe('Max 7 decimal places');
+  it('rejects more than 6 decimals', () => {
+    expect(validateAmount('1.1234567')).toBe('Max 6 decimal places');
   });
 
   it('accepts a valid amount', () => {

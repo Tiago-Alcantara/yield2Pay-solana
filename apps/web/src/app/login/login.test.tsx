@@ -5,7 +5,7 @@
  *   1. Renders a single "Continue with Google" button
  *   2. Clicking it triggers Privy's headless OAuth (initOAuth provider google)
  *   3. Language toggle (EN / PT) changes visible text
- *   4. Redirects to /dashboard when already authenticated
+ *   4. Redirects to /family/dashboard when already authenticated
  *
  * Privy + next/navigation are fully mocked — no real Privy app id required.
  */
@@ -71,9 +71,9 @@ describe('LoginPage', () => {
     expect(screen.getByText(/bem-vindo à yield2pay/i)).toBeTruthy();
   });
 
-  it('redirects to /dashboard when already authenticated', () => {
+  it('redirects to /family/dashboard when already authenticated', () => {
     privyState.authenticated = true;
     render(<LoginPage />);
-    expect(mockReplace).toHaveBeenCalledWith('/dashboard');
+    expect(mockReplace).toHaveBeenCalledWith('/family/dashboard');
   });
 });

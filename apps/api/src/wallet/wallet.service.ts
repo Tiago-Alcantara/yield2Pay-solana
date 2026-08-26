@@ -3,46 +3,55 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { StrKey } from '@stellar/stellar-sdk';
 import { PrismaService } from '../prisma/prisma.service';
-import { StellarService } from '../stellar/stellar.service';
-import { RESERVE_BUFFER_BASE_UNITS } from '../common/reserve';
+import { SolanaService } from '../solana/solana.service';
+import type { WalletBalanceView } from '@yield2pay/shared';
 
 @Injectable()
 export class WalletService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly stellar: StellarService,
+    private readonly solana: SolanaService,
   ) {}
 
-  async register(companyId: string, stellarAddress: string) {
-    if (!StrKey.isValidEd25519PublicKey(stellarAddress)) {
-      throw new BadRequestException('invalid stellar address');
+  /**
+   * Registra a carteira embedded da família e garante a ATA de USDC on-chain.
+   *
+   * A ATA vem antes de persistir: se a criação falhar, não gravamos uma carteira
+   * que não recebe USDC. O sponsor paga o aluguel da ATA.
+   */
+  async register(householdId: string, solanaAddress: string) {
+    if (!SolanaService.isValidAddress(solanaAddress)) {
+      throw new BadRequestException('invalid solana address');
     }
-    // Fund on-chain first; only persist once the account is live.
-    await this.stellar.ensureAccountFunded(stellarAddress);
+    const usdcTokenAccount =
+      await this.solana.ensureUsdcTokenAccount(solanaAddress);
     return this.prisma.wallet.upsert({
-      where: { companyId },
-      create: { companyId, stellarAddress },
-      update: { stellarAddress },
+      where: { householdId },
+      create: { householdId, solanaAddress, usdcTokenAccount },
+      update: { solanaAddress, usdcTokenAccount },
     });
   }
 
-  async getAddress(companyId: string): Promise<string> {
-    const wallet = await this.prisma.wallet.findUnique({ where: { companyId } });
+  async getAddress(householdId: string): Promise<string> {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { householdId },
+    });
     if (!wallet) throw new NotFoundException('wallet not registered');
-    return wallet.stellarAddress;
+    return wallet.solanaAddress;
   }
 
-  async getBalance(
-    companyId: string,
-  ): Promise<{ balance: string; spendable: string }> {
-    const address = await this.getAddress(companyId);
-    const balance = await this.stellar.getNativeBalance(address);
-    const spendable =
-      balance > RESERVE_BUFFER_BASE_UNITS
-        ? balance - RESERVE_BUFFER_BASE_UNITS
-        : 0n;
-    return { balance: balance.toString(), spendable: spendable.toString() };
+  /**
+   * Saldo USDC da carteira.
+   *
+   * Na Stellar descontávamos um buffer de reserva (1.5 XLM) porque a conta do
+   * cliente precisava manter reserva mínima e pagar taxa. Na Solana o sponsor é
+   * o feePayer e paga o aluguel da ATA, então nada fica retido: spendable é o
+   * saldo inteiro.
+   */
+  async getBalance(householdId: string): Promise<WalletBalanceView> {
+    const address = await this.getAddress(householdId);
+    const balance = await this.solana.getUsdcBalance(address);
+    return { balance: balance.toString(), spendable: balance.toString() };
   }
 }

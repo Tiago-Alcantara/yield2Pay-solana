@@ -1,153 +1,86 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { DefindexSDK, SupportedNetworks } from '@defindex/sdk';
-import type { Env } from '../config/env';
+import { Inject, Injectable, NotImplementedException } from '@nestjs/common';
+import { TransactionInstruction } from '@solana/web3.js';
 import { APP_CONFIG } from '../config/config.module';
-
-export const DEFINDEX_SDK = 'DEFINDEX_SDK';
-
-/**
- * Maps the app's stellarNetwork string to the SDK's SupportedNetworks enum.
- * 'testnet' → SupportedNetworks.TESTNET
- * 'public'  → SupportedNetworks.MAINNET
- */
-function toSdkNetwork(network: Env['stellarNetwork']): SupportedNetworks {
-  return network === 'testnet'
-    ? SupportedNetworks.TESTNET
-    : SupportedNetworks.MAINNET;
-}
-
-const DEFAULT_SLIPPAGE_BPS = 50;
-
-function assertSafeInteger(amount: bigint): void {
-  if (amount > BigInt(Number.MAX_SAFE_INTEGER)) {
-    throw new Error('amount exceeds safe integer range for SDK');
-  }
-}
+import type { Env } from '../config/env';
 
 /**
- * DeFindex error 124 (`AmountOverTotalSupply`): a simulação de saldo falha quando
- * o vault está vazio (total_supply 0) — vale pra qualquer endereço. A posição é 0
- * e o erro some sozinho no primeiro depósito, então não é ruído digno de warn.
+ * Cofre de rendimento. Antes era DeFindex (Soroban); agora é Kamino Lend (Solana).
+ *
+ * Os métodos estão vazios de propósito: a SDK da Kamino (`@kamino-finance/klend-sdk`)
+ * ainda não entrou no projeto. A forma do contrato é a que o resto do backend já
+ * consome, então plugar a SDK é preencher estes corpos — nenhum chamador muda.
+ *
+ * O que cada método precisa fazer quando a SDK entrar:
+ *
+ *  - buildDepositInstructions: `KaminoAction.buildDepositTxns` na reserve de USDC
+ *    do market configurado, com `owner` = carteira da família. Devolver só as
+ *    instruções: quem monta a transação é o SolanaService, porque é ele que põe
+ *    o sponsor como feePayer.
+ *
+ *  - buildWithdrawInstructions: `KaminoAction.buildWithdrawTxns` com o mesmo
+ *    contrato. Sacar por valor em USDC (não por quantidade de cTokens): o share
+ *    price sobe com o rendimento, então converter aqui evita erro de arredondamento
+ *    na borda.
+ *
+ *  - getApyPercent: APY da reserve (`reserve.stats.supplyInterestAPY`), como string,
+ *    porque SpendableView.apyPercent vai direto pra tela.
+ *
+ *  - getPositionValue: valor RESGATÁVEL em USDC base units (6 casas), não a
+ *    contagem de cTokens. É a mesma pegadinha que a versão DeFindex documentava:
+ *    o share price passa de 1 conforme rende, então reportar cTokens subestima a
+ *    posição. Usar `obligation.deposits` convertido pelo exchange rate da reserve.
  */
-function isEmptyVaultBalanceError(e: unknown): boolean {
-  if (e && typeof e === 'object') {
-    const err = e as { errorCode?: unknown; message?: unknown };
-    if (err.errorCode === 124) return true;
-    if (
-      typeof err.message === 'string' &&
-      err.message.includes('AmountOverTotalSupply')
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
 @Injectable()
 export class VaultService {
-  private readonly network: SupportedNetworks;
-  private readonly vaultAddress: string;
+  private readonly marketAddress: string;
+  private readonly reserveAddress: string;
 
-  constructor(
-    @Inject(DEFINDEX_SDK) private readonly sdk: DefindexSDK,
-    @Inject(APP_CONFIG) private readonly config: Env,
-  ) {
-    this.network = toSdkNetwork(config.stellarNetwork);
-    this.vaultAddress = config.vaultAddress;
+  constructor(@Inject(APP_CONFIG) config: Env) {
+    this.marketAddress = config.kaminoMarketAddress;
+    this.reserveAddress = config.kaminoReserveAddress;
+  }
+
+  /** Market e reserve configurados. Expostos para log e para o VaultPosition. */
+  get target(): { marketAddress: string; reserveAddress: string } {
+    return {
+      marketAddress: this.marketAddress,
+      reserveAddress: this.reserveAddress,
+    };
+  }
+
+  async buildDepositInstructions(
+    ownerAddress: string,
+    amountBaseUnits: bigint,
+  ): Promise<TransactionInstruction[]> {
+    void ownerAddress;
+    void amountBaseUnits;
+    throw new NotImplementedException('Kamino deposit not wired yet');
+  }
+
+  async buildWithdrawInstructions(
+    ownerAddress: string,
+    amountBaseUnits: bigint,
+  ): Promise<TransactionInstruction[]> {
+    void ownerAddress;
+    void amountBaseUnits;
+    throw new NotImplementedException('Kamino withdraw not wired yet');
   }
 
   /**
-   * Build a deposit transaction XDR.
-   * Returns { xdr } for the caller to sign and submit.
-   */
-  async buildDeposit(caller: string, amount: bigint): Promise<{ xdr: string }> {
-    assertSafeInteger(amount);
-    const response = await this.sdk.depositToVault(
-      this.vaultAddress,
-      {
-        amounts: [Number(amount)],
-        caller,
-        invest: true,
-        slippageBps: DEFAULT_SLIPPAGE_BPS,
-      },
-      this.network,
-    );
-
-    if (response.xdr === null) {
-      throw new Error('depositToVault returned null xdr');
-    }
-
-    return { xdr: response.xdr };
-  }
-
-  /**
-   * Build a withdraw transaction XDR.
-   * Returns { xdr } for the caller to sign and submit.
-   */
-  async buildWithdraw(
-    caller: string,
-    amount: bigint,
-  ): Promise<{ xdr: string }> {
-    assertSafeInteger(amount);
-    const response = await this.sdk.withdrawFromVault(
-      this.vaultAddress,
-      {
-        amounts: [Number(amount)],
-        caller,
-        slippageBps: DEFAULT_SLIPPAGE_BPS,
-      },
-      this.network,
-    );
-
-    if (response.xdr === null) {
-      throw new Error('withdrawFromVault returned null xdr');
-    }
-
-    return { xdr: response.xdr };
-  }
-
-  /**
-   * Get the vault's current APY as a percentage string.
-   * Returned as a string because downstream SpendableView.apyPercent is a
-   * string surfaced directly by the dashboard.
+   * APY da reserve como string de percentual.
+   * Devolve '0' enquanto a SDK não entra, para o dashboard renderizar sem quebrar.
    */
   async getApyPercent(): Promise<string> {
-    try {
-      const response = await this.sdk.getVaultAPY(
-        this.vaultAddress,
-        this.network,
-      );
-      return String(response.apy);
-    } catch (e) {
-      console.warn('[VaultService] getVaultAPY failed, returning 0:', e);
-      return '0';
-    }
+    return '0';
   }
 
   /**
-   * Get the user's position value in the vault, in the underlying asset's
-   * base units (XLM stroops for the native vault, 7 decimals).
-   *
-   * Uses the DeFindex SDK's `underlyingBalance` — the real redeemable value of
-   * the user's shares — NOT the raw `dfTokens` share count. Share price drifts
-   * above 1 as the vault earns yield, so dfTokens < underlyingBalance; reporting
-   * dfTokens would understate the position (e.g. a 5000 XLM deposit shows as
-   * ~4998 shares but is worth ~5000 XLM underlying).
+   * Valor resgatável da posição, em USDC base units (6 casas).
+   * Devolve 0n enquanto a SDK não entra: o dashboard mostra principal sem
+   * rendimento em vez de estourar.
    */
-  async getPositionValue(userAddress: string): Promise<bigint> {
-    try {
-      const response = await this.sdk.getVaultBalance(
-        this.vaultAddress,
-        userAddress,
-        this.network,
-      );
-      return BigInt(response.underlyingBalance?.[0] ?? 0);
-    } catch (e) {
-      // Vault vazio → posição 0, silencioso (ver isEmptyVaultBalanceError).
-      if (!isEmptyVaultBalanceError(e)) {
-        console.warn('[VaultService] getVaultBalance failed, returning 0n:', e);
-      }
-      return 0n;
-    }
+  async getPositionValue(ownerAddress: string): Promise<bigint> {
+    void ownerAddress;
+    return 0n;
   }
 }

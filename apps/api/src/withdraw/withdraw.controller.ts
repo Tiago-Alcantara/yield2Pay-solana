@@ -13,13 +13,13 @@ export class WithdrawController {
   @Post('build')
   build(@Req() req: AuthenticatedRequest, @Body() body: { amount: string }) {
     return this.withdrawService.build(
-      req.companyId,
+      req.householdId,
       parseBaseUnits(body.amount),
     );
   }
 
   @Post('submit')
   submit(@Req() req: AuthenticatedRequest, @Body() body: SubmitTxDto) {
-    return this.withdrawService.submit(req.companyId, body);
+    return this.withdrawService.submit(req.householdId, body);
   }
 }

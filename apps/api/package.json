@@ -20,7 +20,6 @@
     "test:e2e": "vitest run --config vitest.config.e2e.ts"
   },
   "dependencies": {
-    "@defindex/sdk": "^0.3.0",
     "@yield2pay/shared": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
@@ -30,7 +29,8 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@privy-io/server-auth": "^1.32.5",
-    "@stellar/stellar-sdk": "^16.0.1",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.98.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "dotenv": "^17.4.2",

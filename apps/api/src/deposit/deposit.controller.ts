@@ -13,13 +13,13 @@ export class DepositController {
   @Post('build')
   build(@Req() req: AuthenticatedRequest, @Body() body: { amount: string }) {
     return this.depositService.build(
-      req.companyId,
+      req.householdId,
       parseBaseUnits(body.amount),
     );
   }
 
   @Post('submit')
   submit(@Req() req: AuthenticatedRequest, @Body() body: SubmitTxDto) {
-    return this.depositService.submit(req.companyId, body);
+    return this.depositService.submit(req.householdId, body);
   }
 }

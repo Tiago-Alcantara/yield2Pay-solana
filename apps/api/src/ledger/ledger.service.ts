@@ -21,47 +21,46 @@ export class LedgerService {
   ) {}
 
   async recordDeposit(
-    companyId: string,
+    householdId: string,
     amount: bigint,
-    txHash: string,
-    rampOrderId?: string,
+    txSignature: string,
   ): Promise<void> {
     await this.prisma.deposit.create({
-      data: { companyId, amount, txHash, rampOrderId },
+      data: { householdId, amount, txSignature },
     });
   }
 
   async recordWithdraw(
-    companyId: string,
+    householdId: string,
     amount: bigint,
-    txHash: string,
+    txSignature: string,
   ): Promise<void> {
     // Lançamento negativo: reduz o principal agregado em principal().
     await this.prisma.deposit.create({
-      data: { companyId, amount: -amount, txHash },
+      data: { householdId, amount: -amount, txSignature },
     });
   }
 
-  async principal(companyId: string): Promise<bigint> {
+  async principal(householdId: string): Promise<bigint> {
     const depositAggregate = await this.prisma.deposit.aggregate({
-      where: { companyId },
+      where: { householdId },
       _sum: { amount: true },
     });
     const sum = depositAggregate._sum.amount ?? 0n;
     return sum > 0n ? sum : 0n;
   }
 
-  async computeSpendable(companyId: string) {
+  async computeSpendable(householdId: string) {
     // getAddress e principal são consultas independentes ao DB → rodam em
     // paralelo. getPositionValue depende do address, então vem depois.
     const [address, principal] = await Promise.all([
-      this.wallet.getAddress(companyId),
-      this.principal(companyId),
+      this.wallet.getAddress(householdId),
+      this.principal(householdId),
     ]);
     let vaultValue = await this.vault.getPositionValue(address);
     // Demo: injeta rendimento sintético quando DEMO_YIELD_BPS > 0, para
-    // demonstrar rendimento já no primeiro mês (depósito recém-feito ainda
-    // não rendeu). Em produção a flag fica 0 e nada muda.
+    // demonstrar rendimento já no primeiro mês (aporte recém-feito ainda não
+    // rendeu). Em produção a flag fica 0 e nada muda.
     const demoBps = BigInt(this.config.demoYieldBps);
     if (demoBps > 0n && principal > 0n) {
       const synthetic = principal + (principal * demoBps) / 10000n;
@@ -81,12 +80,12 @@ export class LedgerService {
    * para a UI mostrar algo coerente já na primeira demonstração.
    */
   async getReturnsChangePercent(
-    companyId: string,
+    householdId: string,
     currentSpendable: bigint,
   ): Promise<string | null> {
     const cutoff = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
     const baseline = await this.prisma.yieldSnapshot.findFirst({
-      where: { companyId, createdAt: { lte: cutoff } },
+      where: { householdId, createdAt: { lte: cutoff } },
       orderBy: { createdAt: 'desc' },
       select: { spendable: true },
     });
@@ -100,17 +99,18 @@ export class LedgerService {
     }
 
     // delta/base * 100, em décimos de % (1 casa decimal) com bigint.
-    const tenths = ((currentSpendable - baseline.spendable) * 1000n) / baseline.spendable;
+    const tenths =
+      ((currentSpendable - baseline.spendable) * 1000n) / baseline.spendable;
     const sign = tenths >= 0n ? '+' : '-';
     const abs = tenths < 0n ? -tenths : tenths;
     return `${sign}${abs / 10n}.${abs % 10n}`;
   }
 
-  async snapshot(companyId: string): Promise<void> {
+  async snapshot(householdId: string): Promise<void> {
     const { vaultValue, principal, spendable } =
-      await this.computeSpendable(companyId);
+      await this.computeSpendable(householdId);
     await this.prisma.yieldSnapshot.create({
-      data: { companyId, vaultValue, principal, spendable },
+      data: { householdId, vaultValue, principal, spendable },
     });
   }
 }

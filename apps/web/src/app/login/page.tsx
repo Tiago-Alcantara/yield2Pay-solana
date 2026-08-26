@@ -85,7 +85,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { ready, authenticated } = usePrivy();
   const { initOAuth, loading } = useLoginWithOAuth({
-    onComplete: () => router.replace('/dashboard'),
+    onComplete: () => router.replace('/family/dashboard'),
     onError: (err) => {
       console.error('[Yield2Pay] Privy OAuth error:', err);
       setError(true);
@@ -100,7 +100,7 @@ export default function LoginPage() {
 
   // Already authenticated (or just returned from the Google redirect) → leave.
   useEffect(() => {
-    if (ready && authenticated) router.replace('/dashboard');
+    if (ready && authenticated) router.replace('/family/dashboard');
   }, [ready, authenticated, router]);
 
   async function signInWithGoogle() {

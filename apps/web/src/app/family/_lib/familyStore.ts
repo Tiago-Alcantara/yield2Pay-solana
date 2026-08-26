@@ -8,7 +8,7 @@ import type { FamilySub } from './familyMath';
  * useEffect: assim o valor guardado no localStorage entra na hidratação sem
  * setState dentro de effect — mesmo padrão de src/lib/useIsMobile.ts.
  *
- * Tudo aqui é mock. Privy (login/carteira) e DeFindex (cofre) entram depois:
+ * Tudo aqui é mock. Privy (login/carteira) e Kamino (cofre) entram depois:
  * quando entrarem, este módulo passa a hidratar da API e as telas não mudam.
  */
 

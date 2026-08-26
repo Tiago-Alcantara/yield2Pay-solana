@@ -7,7 +7,7 @@
  * quando o acumulado até ela cabe dentro do rendimento mensal.
  *
  * Todos os valores são em reais (number), não em base units — estas telas
- * ainda são front puro, sem DeFindex/Privy por trás.
+ * ainda são front puro, sem Kamino/Privy por trás.
  */
 
 export interface FamilySub {

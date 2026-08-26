@@ -1,5 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { parseBaseUnits } from './parse-money';
+import {
+  USDC_DECIMALS,
+  formatBaseUnits,
+  parseBaseUnits,
+  toBaseUnits,
+} from './parse-money';
 
 describe('parseBaseUnits', () => {
   it('returns a bigint for a valid positive integer string', () => {
@@ -38,6 +43,34 @@ describe('parseBaseUnits', () => {
   it('throws for negative-sign prefix', () => {
     expect(() => parseBaseUnits('-1')).toThrow(BadRequestException);
     expect(() => parseBaseUnits('-100')).toThrow(BadRequestException);
+  });
+});
+
+describe('USDC decimals (Solana)', () => {
+  it('uses 6 decimal places, not Stellar 7', () => {
+    expect(USDC_DECIMALS).toBe(6);
+  });
+
+  it('formats base units as a human decimal string', () => {
+    expect(formatBaseUnits(10_000_000n)).toBe('10');
+    expect(formatBaseUnits(10_500_000n)).toBe('10.5');
+    expect(formatBaseUnits(1n)).toBe('0.000001');
+    expect(formatBaseUnits(0n)).toBe('0');
+    expect(formatBaseUnits(-2_500_000n)).toBe('-2.5');
+  });
+
+  it('parses a human decimal string into base units', () => {
+    expect(toBaseUnits('10')).toBe(10_000_000n);
+    expect(toBaseUnits('10.5')).toBe(10_500_000n);
+    expect(toBaseUnits('0.000001')).toBe(1n);
+  });
+
+  it('rejects more decimals than the mint supports', () => {
+    expect(() => toBaseUnits('1.1234567')).toThrow(BadRequestException);
+  });
+
+  it('round-trips through base units', () => {
+    expect(formatBaseUnits(toBaseUnits('123.456789'))).toBe('123.456789');
   });
 });
 

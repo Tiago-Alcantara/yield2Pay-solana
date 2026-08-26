@@ -12,15 +12,16 @@ export class LedgerController {
     private readonly ledger: LedgerService,
     private readonly vault: VaultService,
   ) {}
+
   @Get()
   async dashboard(@Req() req: AuthenticatedRequest): Promise<SpendableView> {
     const [s, apyPercent] = await Promise.all([
-      this.ledger.computeSpendable(req.companyId),
+      this.ledger.computeSpendable(req.householdId),
       this.vault.getApyPercent(),
     ]);
     // Depende do spendable atual → roda após computeSpendable.
     const returnsChangePercent = await this.ledger.getReturnsChangePercent(
-      req.companyId,
+      req.householdId,
       s.spendable,
     );
     return {

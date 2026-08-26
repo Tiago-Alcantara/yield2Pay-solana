@@ -9,7 +9,7 @@ import { useWallet } from '@/lib/useWallet';
  * AuthGate — wraps authenticated app pages.
  *
  * - If Privy is ready and the user is NOT authenticated, redirects to /login.
- * - Once authenticated, calls ensureWallet() once to provision a Stellar
+ * - Once authenticated, calls ensureWallet() once to provision a Solana
  *   embedded wallet and register it with the backend.
  *
  * Renders nothing until Privy is ready (avoids flash of unauthenticated content).
