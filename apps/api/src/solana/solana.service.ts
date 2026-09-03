@@ -52,7 +52,7 @@ function loadSponsorKeypair(secret: string): Keypair {
  */
 @Injectable()
 export class SolanaService {
-  private readonly connection: Connection;
+  private readonly _connection: Connection;
   private readonly sponsor: Keypair;
   private readonly usdcMint: PublicKey;
 
@@ -60,10 +60,14 @@ export class SolanaService {
     @Inject(APP_CONFIG) config: Env,
     @Optional() connection?: Connection,
   ) {
-    this.connection =
+    this._connection =
       connection ?? new Connection(config.solanaRpcUrl, 'confirmed');
     this.sponsor = loadSponsorKeypair(config.feeSponsorSecretKey);
     this.usdcMint = new PublicKey(config.usdcMint);
+  }
+
+  get connection(): Connection {
+    return this._connection;
   }
 
   get sponsorAddress(): string {
@@ -123,7 +127,7 @@ export class SolanaService {
       new PublicKey(ownerAddress),
     );
     try {
-      const account = await getAccount(this.connection, ata);
+      const account = await getAccount(this._connection, ata);
       return account.amount;
     } catch {
       // ATA ainda não criada → saldo 0. Não é erro: acontece antes do 1º aporte.
@@ -141,7 +145,7 @@ export class SolanaService {
   async buildSponsoredTransaction(
     instructions: TransactionInstruction[],
   ): Promise<{ transactionBase64: string }> {
-    const { blockhash } = await this.connection.getLatestBlockhash();
+    const { blockhash } = await this._connection.getLatestBlockhash();
     const message = new TransactionMessage({
       payerKey: this.sponsor.publicKey,
       recentBlockhash: blockhash,
@@ -174,12 +178,12 @@ export class SolanaService {
       throw new Error('transaction feePayer is not the sponsor');
     }
 
-    const signature = await this.connection.sendRawTransaction(raw, {
+    const signature = await this._connection.sendRawTransaction(raw, {
       skipPreflight: false,
     });
     const { blockhash, lastValidBlockHeight } =
-      await this.connection.getLatestBlockhash();
-    const confirmation = await this.connection.confirmTransaction(
+      await this._connection.getLatestBlockhash();
+    const confirmation = await this._connection.confirmTransaction(
       { signature, blockhash, lastValidBlockHeight },
       'confirmed',
     );

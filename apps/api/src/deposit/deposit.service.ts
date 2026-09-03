@@ -10,9 +10,8 @@ import { WalletService } from '../wallet/wallet.service';
 import { parseBaseUnits } from '../common/parse-money';
 import type { BuildTxResponse, SubmitTxDto } from '@yield2pay/shared';
 
-// Teto de segurança para um aporte único: 10.000 USDC em base units (6 casas).
-// Bem acima do aporte esperado de uma família; ajustar ao limite real do produto.
-const MAX_DEPOSIT_BASE_UNITS = 10_000_000_000n;
+// MVP mainnet: teto conservador até o produto amadurecer (100 USDC).
+const MAX_DEPOSIT_BASE_UNITS = 100_000_000n;
 
 @Injectable()
 export class DepositService {

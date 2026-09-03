@@ -12,7 +12,8 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { C, PANEL_SHADOW_LG, cardLabel } from '../_lib/familyTheme';
 import { useFamily } from '../_lib/FamilyProvider';
-import { fmtBRL, fmtBRLShort, numericOnly, parseBRL } from '../_lib/familyFormat';
+import { fmtUsdc, fmtUsdcShort, numericOnly, parseUsdc } from '../_lib/familyFormat';
+import { useFamilyData } from '../_lib/useFamilyData';
 import {
   coverageRows,
   coveredAmount,
@@ -20,6 +21,7 @@ import {
   monthlyTotalOf,
   monthlyYieldOf,
 } from '../_lib/familyMath';
+import type { FamilySub } from '../_lib/familyMath';
 import {
   CoverageBar,
   MetalPanel,
@@ -31,12 +33,15 @@ import { DashboardHeader } from '../_components/DashboardHeader';
 
 export default function FamilyDashboardPage() {
   const router = useRouter();
-  const { t, state, addSub } = useFamily();
+  const { t } = useFamily();
+  const { dashboard, subs, createSub } = useFamilyData();
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const { deposit, rate, subs } = state;
+  const deposit = dashboard ? Number(dashboard.principal) / 10 ** 6 : 0;
+  const rate = dashboard ? Number(dashboard.apyPercent) : 0;
 
   const view = useMemo(() => {
     const yieldPerMonth = monthlyYieldOf(deposit, rate);
@@ -46,20 +51,27 @@ export default function FamilyDashboardPage() {
       monthly,
       paid: coveredAmount(monthly, yieldPerMonth),
       pct: freedomPercent(monthly, yieldPerMonth),
-      rows: coverageRows(subs, deposit, rate),
+      rows: coverageRows(subs as unknown as FamilySub[], deposit, rate),
     };
   }, [deposit, rate, subs]);
 
   const rateLabel = `${rate}%`;
 
-  function handleAdd() {
-    const price = parseBRL(newPrice);
+  async function handleAdd() {
+    const price = parseUsdc(newPrice);
     const name = newName.trim();
-    if (!name || price <= 0) return;
-    addSub({ name, price, dia: 1 });
-    setNewName('');
-    setNewPrice('');
-    setAdding(false);
+    if (!name || price <= 0 || saving) return;
+    setSaving(true);
+    try {
+      await createSub({ name, price, category: 'other' });
+      setNewName('');
+      setNewPrice('');
+      setAdding(false);
+    } catch {
+      /* o popup de erro global já abre (createApi publica notificação) */
+    } finally {
+      setSaving(false);
+    }
   }
 
   const movements = [
@@ -67,7 +79,7 @@ export default function FamilyDashboardPage() {
       key: 'yield',
       label: t.dash.movYield,
       sub: t.dash.movYieldSub,
-      value: `+ ${fmtBRL(view.paid)}`,
+      value: `+ ${fmtUsdc(view.paid)}`,
       positive: true,
     },
     ...view.rows
@@ -77,14 +89,14 @@ export default function FamilyDashboardPage() {
         key: r.id,
         label: r.name,
         sub: t.dash.movAuto,
-        value: `− ${fmtBRL(r.price)}`,
+        value: `− ${fmtUsdc(r.price)}`,
         positive: false,
       })),
     {
       key: 'deposit',
       label: t.dash.movDeposit,
       sub: t.dash.movDepositSub,
-      value: `+ ${fmtBRLShort(deposit)}`,
+      value: `+ ${fmtUsdcShort(deposit)}`,
       positive: true,
     },
   ];
@@ -142,10 +154,10 @@ export default function FamilyDashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <StatCard
               label={t.dash.balanceLabel}
-              value={fmtBRLShort(deposit)}
+              value={fmtUsdcShort(deposit)}
               sub={t.dash.balanceSub}
             />
-            <StatCard label={t.dash.paidLabel} value={fmtBRL(view.paid)} sub={t.dash.paidSub} />
+            <StatCard label={t.dash.paidLabel} value={fmtUsdc(view.paid)} sub={t.dash.paidSub} />
           </div>
         </div>
 
@@ -211,7 +223,7 @@ export default function FamilyDashboardPage() {
                   marginTop: 10,
                 }}
               >
-                {fmtBRLShort(deposit)}
+                {fmtUsdcShort(deposit)}
               </div>
               <div style={{ fontSize: 13, lineHeight: 1.5, color: C.text2, marginTop: 6 }}>
                 {t.dash.vaultNote}
@@ -339,7 +351,7 @@ export default function FamilyDashboardPage() {
                 {t.dash.subsTitle}
               </div>
               <div style={{ fontSize: 13.5, color: C.text2, marginTop: 4 }}>
-                {t.dash.subsTotal(fmtBRL(view.monthly))}
+                {t.dash.subsTotal(fmtUsdc(view.monthly))}
               </div>
             </div>
             <button
@@ -469,14 +481,14 @@ export default function FamilyDashboardPage() {
                   <span style={{ display: 'block', fontSize: 12.5, color: C.text3, marginTop: 2 }}>
                     {row.covered
                       ? t.dash.subsHintCovered
-                      : t.dash.subsHintMissing(fmtBRLShort(row.missing))}
+                      : t.dash.subsHintMissing(fmtUsdcShort(row.missing))}
                   </span>
                 </span>
                 <span
                   className="fam-sub-price"
                   style={{ fontFamily: C.mono, fontSize: 14, color: C.silver }}
                 >
-                  {fmtBRLShort(row.price)}
+                  {fmtUsdcShort(row.price)}
                 </span>
                 <StatusPill covered={row.covered}>
                   {row.covered ? t.dash.statusCovered : t.dash.statusNotYet}

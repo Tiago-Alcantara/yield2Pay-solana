@@ -12,9 +12,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { C, PANEL_SHADOW_LG, cardLabel } from '../../_lib/familyTheme';
 import { useFamily } from '../../_lib/FamilyProvider';
-import { fmtBRL, fmtBRLShort } from '../../_lib/familyFormat';
-import { coverageRows } from '../../_lib/familyMath';
+import { fmtUsdc, fmtUsdcShort } from '../../_lib/familyFormat';
+import { coverageRows, type FamilySub } from '../../_lib/familyMath';
 import { CoverageBar, MetalPanel, StatusPill } from '../../_components/FamilyUI';
+import { useFamilyData } from '../../_lib/useFamilyData';
 
 export default function FamilySubscriptionPage({
   params,
@@ -23,12 +24,15 @@ export default function FamilySubscriptionPage({
 }) {
   const { subId } = use(params);
   const router = useRouter();
-  const { t, state } = useFamily();
-  const { deposit, rate, subs } = state;
+  const { t } = useFamily();
+  const { dashboard, subs } = useFamilyData();
+
+  const deposit = dashboard ? Number(dashboard.principal) / 10 ** 6 : 0;
+  const rate = dashboard ? Number(dashboard.apyPercent) : 0;
 
   const row = useMemo(() => {
     const id = decodeURIComponent(subId);
-    return coverageRows(subs, deposit, rate).find((s) => s.id === id) ?? null;
+    return coverageRows(subs as unknown as FamilySub[], deposit, rate).find((s) => s.id === id) ?? null;
   }, [subId, subs, deposit, rate]);
 
   const backLink = (
@@ -93,7 +97,7 @@ export default function FamilySubscriptionPage({
                   {row.name}
                 </h1>
                 <div style={{ fontFamily: C.mono, fontSize: 14, color: C.silver, marginTop: 8 }}>
-                  {fmtBRL(row.price)} {t.detail.perMonth}
+                  {fmtUsdc(row.price)} {t.detail.perMonth}
                 </div>
               </div>
               <StatusPill covered={row.covered}>
@@ -107,7 +111,7 @@ export default function FamilySubscriptionPage({
             <div style={{ fontSize: 14, lineHeight: 1.6, color: C.textSoft, marginTop: 14 }}>
               {row.covered
                 ? t.detail.lineCovered
-                : t.detail.linePartial(progress, fmtBRLShort(row.missing))}
+                : t.detail.linePartial(progress, fmtUsdcShort(row.missing))}
             </div>
           </MetalPanel>
         </div>
@@ -131,7 +135,7 @@ export default function FamilySubscriptionPage({
                 marginTop: 10,
               }}
             >
-              {fmtBRLShort(row.cumNeeded)}
+              {fmtUsdcShort(row.cumNeeded)}
             </div>
             <div style={{ fontSize: 12.5, lineHeight: 1.5, color: C.text2, marginTop: 6 }}>
               {t.detail.neededSub}
@@ -155,7 +159,7 @@ export default function FamilySubscriptionPage({
                 marginTop: 10,
               }}
             >
-              {row.covered ? 'R$ 0' : fmtBRLShort(row.missing)}
+              {row.covered ? fmtUsdc(0) : fmtUsdcShort(row.missing)}
             </div>
             <div style={{ fontSize: 12.5, lineHeight: 1.5, color: C.text2, marginTop: 6 }}>
               {t.detail.missingSub}

@@ -31,7 +31,7 @@ export function numericOnly(input: string): string {
   return input.replace(/[^0-9.,]/g, '');
 }
 
-/** Validação de e-mail usada no formulário de lista de espera. */
+/** Validação de e-mail — também aceita chaves PIX do tipo e-mail. */
 export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
@@ -42,4 +42,43 @@ export function isValidPixKey(value: string): boolean {
   if (isValidEmail(v)) return true;
   const digits = v.replace(/\D/g, '');
   return digits.length >= 10 && digits.length <= 14;
+}
+
+// ── USDC (telas do app) ────────────────────────────────────────────────────
+// A API troca valores em base units (6 casas, string). As telas calculam em
+// number e formatam em USDC — a conversão mora aqui e em lugar nenhum mais.
+
+export const USDC_DECIMALS = 6;
+
+/** "USDC 1.234,56" */
+export function fmtUsdc(value: number): string {
+  return (
+    'USDC ' +
+    Number(value).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+}
+
+/** "USDC 1.235" — onde o centavo só polui. */
+export function fmtUsdcShort(value: number): string {
+  return 'USDC ' + Math.round(value).toLocaleString('pt-BR');
+}
+
+/** Lê um valor digitado em pt-BR ("1.234,56") como number. Inválido vira 0. */
+export function parseUsdc(input: string): number {
+  return parseFloat(String(input).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+/** Base units (string|bigint, 6 casas) → number em USDC. */
+export function toUsdcNumber(baseUnits: string | bigint): number {
+  const n = typeof baseUnits === 'bigint' ? baseUnits : BigInt(baseUnits || '0');
+  return Number(n) / 10 ** USDC_DECIMALS;
+}
+
+/** number em USDC → base units string (6 casas), truncando (não arredonda pra cima). */
+export function toBaseUnitsString(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '0';
+  return BigInt(Math.floor(value * 10 ** USDC_DECIMALS)).toString();
 }

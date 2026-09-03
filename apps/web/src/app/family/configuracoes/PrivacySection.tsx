@@ -12,7 +12,7 @@ import { useFamily } from '../_lib/FamilyProvider';
  * dinheiro do usuário e apagá-la não sacaria nada por ele.
  */
 export function PrivacySection() {
-  const { t, state } = useFamily();
+  const { t } = useFamily();
   const [downloaded, setDownloaded] = useState(false);
   const [step, setStep] = useState<0 | 1>(0);
   const [error, setError] = useState(false);
@@ -20,7 +20,7 @@ export function PrivacySection() {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const hasBalance = state.deposit > 0;
+  const hasBalance = false;
 
   const cardTitle: React.CSSProperties = {
     fontSize: 18,

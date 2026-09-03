@@ -15,7 +15,6 @@ import { BackHeader } from '../_components/FamilyUI';
 import { ProfileSection } from './ProfileSection';
 import { SecuritySection } from './SecuritySection';
 import { WalletSection } from './WalletSection';
-import { PixSection } from './PixSection';
 import { SubsSection } from './SubsSection';
 import { NotificationsSection } from './NotificationsSection';
 import { PrivacySection } from './PrivacySection';
@@ -24,7 +23,6 @@ const SECTIONS = [
   'perfil',
   'seguranca',
   'carteira',
-  'pix',
   'assinaturas',
   'notificacoes',
   'privacidade',
@@ -111,7 +109,6 @@ export default function FamilySettingsPage() {
             {section === 'perfil' && <ProfileSection />}
             {section === 'seguranca' && <SecuritySection />}
             {section === 'carteira' && <WalletSection />}
-            {section === 'pix' && <PixSection />}
             {section === 'assinaturas' && <SubsSection />}
             {section === 'notificacoes' && <NotificationsSection />}
             {section === 'privacidade' && <PrivacySection />}

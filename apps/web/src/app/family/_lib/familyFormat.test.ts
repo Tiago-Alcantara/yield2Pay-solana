@@ -1,4 +1,17 @@
-import { fmtBRL, fmtBRLShort, isValidEmail, isValidPixKey, numericOnly, parseBRL } from './familyFormat';
+import { describe, expect, it } from 'vitest';
+import {
+  fmtBRL,
+  fmtBRLShort,
+  isValidEmail,
+  isValidPixKey,
+  numericOnly,
+  parseBRL,
+  fmtUsdc,
+  fmtUsdcShort,
+  parseUsdc,
+  toUsdcNumber,
+  toBaseUnitsString,
+} from './familyFormat';
 
 describe('fmtBRL', () => {
   it('sempre mostra dois decimais em pt-BR', () => {
@@ -52,5 +65,31 @@ describe('isValidPixKey', () => {
   });
   it('rejeita chave curta demais', () => {
     expect(isValidPixKey('123')).toBe(false);
+  });
+});
+
+describe('formato USDC', () => {
+  it('formata com 2 casas e prefixo USDC', () => {
+    expect(fmtUsdc(1234.56)).toBe('USDC 1.234,56');
+    expect(fmtUsdc(0)).toBe('USDC 0,00');
+  });
+
+  it('formata sem centavos no formato curto', () => {
+    expect(fmtUsdcShort(1234.56)).toBe('USDC 1.235');
+  });
+
+  it('lê valor digitado em pt-BR', () => {
+    expect(parseUsdc('1.234,56')).toBe(1234.56);
+    expect(parseUsdc('')).toBe(0);
+  });
+
+  it('converte base units (6 casas) da API para number', () => {
+    expect(toUsdcNumber('1234500000')).toBe(1234.5);
+    expect(toUsdcNumber(0n)).toBe(0);
+  });
+
+  it('converte number para base units como string', () => {
+    expect(toBaseUnitsString(1234.56)).toBe('1234560000');
+    expect(toBaseUnitsString(0.000001)).toBe('1');
   });
 });
