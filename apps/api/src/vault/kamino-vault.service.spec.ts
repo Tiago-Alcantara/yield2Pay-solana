@@ -48,7 +48,7 @@ vi.mock('@kamino-finance/klend-sdk', () => {
   };
 });
 
-import { VaultService } from './vault.service';
+import { KaminoVaultService } from './kamino-vault.service';
 import type { Env } from '../config/env';
 
 // Valid base58 public keys for testing (real Solana addresses)
@@ -63,21 +63,21 @@ const env = {
 } as unknown as Env;
 
 function makeService() {
-  return new VaultService(env);
+  return new KaminoVaultService(env);
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('VaultService.getApyPercent', () => {
+describe('KaminoVaultService.getApyPercent', () => {
   it('devolve o APY da reserve como string de percentual', async () => {
     const service = makeService();
     await expect(service.getApyPercent()).resolves.toBe('8.12');
   });
 });
 
-describe('VaultService.buildDepositInstructions', () => {
+describe('KaminoVaultService.buildDepositInstructions', () => {
   it('devolve TransactionInstruction[] com programId correto e chama buildDepositTxns com o amount', async () => {
     const { service } = { service: makeService() };
     const ixs = await service.buildDepositInstructions(VALID_OWNER_ADDRESS, 1_000_000_000n);
@@ -89,7 +89,7 @@ describe('VaultService.buildDepositInstructions', () => {
   });
 });
 
-describe('VaultService.buildWithdrawInstructions', () => {
+describe('KaminoVaultService.buildWithdrawInstructions', () => {
   it('devolve instructions de resgate', async () => {
     const service = makeService();
     const ixs = await service.buildWithdrawInstructions(
@@ -103,7 +103,7 @@ describe('VaultService.buildWithdrawInstructions', () => {
   });
 });
 
-describe('VaultService.getPositionValue', () => {
+describe('KaminoVaultService.getPositionValue', () => {
   it('converte obligation deposits pelo valor em USDC base units', async () => {
     // Mock obligation com getDepositAmountByReserve que devolve Decimal
     const mockObligation = {
