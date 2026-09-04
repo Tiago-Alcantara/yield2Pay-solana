@@ -17,6 +17,7 @@ const pt = {
     navHow: 'Como funciona',
     navCta: 'Entrar na lista',
     enterApp: 'Já tenho conta — entrar ›',
+    loginCta: 'Entrar',
 
     heroEyebrow: 'Yield2Pay para famílias',
     heroTitle: 'O rendimento do seu próprio dinheiro paga suas assinaturas.',
@@ -427,6 +428,7 @@ const en: FamilyDict = {
     navHow: 'How it works',
     navCta: 'Join the list',
     enterApp: 'I already have an account — sign in ›',
+    loginCta: 'Log in',
 
     heroEyebrow: 'Yield2Pay for families',
     heroTitle: 'The yield on your own money pays your subscriptions.',
