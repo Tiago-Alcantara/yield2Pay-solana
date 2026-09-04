@@ -498,7 +498,7 @@ Most documents are written in Portuguese.
 
 <div align="center">
 
-<sub>Yield2Pay started life as **FixEarn** (Stellar), became Yield2Pay, and this repo is the
+<sub>Yield2Pay started life as **FixEarn** , became Yield2Pay, and this repo is the
 **Solana** fork dedicated to the families vertical.</sub>
 
 <sub>A non-custodial payment tool. We are not a financial institution and do not manage third-party
