@@ -4,29 +4,36 @@
  * Onboarding de família — /family/onboarding
  *
  * Três passos, como no design: entrar → carteira criada → primeiro depósito.
- * Os botões de login são placebo por enquanto: quando Privy entrar, `loginNext`
- * vira `initOAuth({provider})` e o passo 2 espera a carteira embarcada ser
- * provisionada.
+ * Passo 1: login real via Privy.
+ * Passo 2: aguarda provisionamento da carteira embedded (ensureWallet).
+ * Passo 3: UsdcDepositCard → redireciona para o dashboard.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { usePrivy } from '@privy-io/react-auth';
 import { C, CHROME_SHADOW } from '../_lib/familyTheme';
-import { useFamily, SEED_DEPOSIT } from '../_lib/FamilyProvider';
+import { useFamily } from '../_lib/FamilyProvider';
+import { useWallet } from '@/lib/useWallet';
 import { FamilyBrand, MetalPanel } from '../_components/FamilyUI';
-import { PixDepositCard } from '../_components/PixDepositCard';
+import { UsdcDepositCard } from '../_components/UsdcDepositCard';
 
 type Step = 1 | 2 | 3;
 
 export default function FamilyOnboardingPage() {
   const router = useRouter();
-  const { t, addDeposit } = useFamily();
+  const { t } = useFamily();
+  const { login } = usePrivy();
+  const { address, ensureWallet } = useWallet();
   const [step, setStep] = useState<Step>(1);
 
-  function handleConfirm(amount: number) {
-    addDeposit(amount > 0 ? amount : SEED_DEPOSIT);
-    router.push('/family/dashboard');
-  }
+  useEffect(() => {
+    if (step === 2 && !address) {
+      ensureWallet().catch(() => {
+        /* popup de erro global; o usuário pode voltar ao passo 1 */
+      });
+    }
+  }, [step, address, ensureWallet]);
 
   const cardStyle: React.CSSProperties = {
     width: '100%',
@@ -66,7 +73,7 @@ export default function FamilyOnboardingPage() {
               <button
                 type="button"
                 className="btn-shine"
-                onClick={() => setStep(2)}
+                onClick={() => void login()}
                 style={{
                   fontFamily: 'inherit',
                   fontSize: 15,
@@ -89,7 +96,7 @@ export default function FamilyOnboardingPage() {
               <button
                 type="button"
                 className="fam-outline"
-                onClick={() => setStep(2)}
+                onClick={() => void login()}
                 style={{
                   fontFamily: 'inherit',
                   fontSize: 15,
@@ -168,6 +175,23 @@ export default function FamilyOnboardingPage() {
                 >
                   {t.onboarding.walletKicker}
                 </div>
+                {address ? (
+                  <div
+                    style={{
+                      fontFamily: C.mono,
+                      fontSize: 12,
+                      color: C.silver,
+                      marginTop: 10,
+                      wordBreak: 'break-all',
+                    }}
+                  >
+                    {address}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 14, lineHeight: 1.6, color: C.textSoft, margin: '10px 0 0' }}>
+                    {t.onboarding.usdcStatusBuilding}
+                  </p>
+                )}
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: C.textSoft, margin: '10px 0 0' }}>
                   {t.onboarding.walletBody}
                 </p>
@@ -177,6 +201,7 @@ export default function FamilyOnboardingPage() {
               type="button"
               className="btn-shine"
               onClick={() => setStep(3)}
+              disabled={!address}
               style={{
                 width: '100%',
                 fontFamily: 'inherit',
@@ -187,7 +212,8 @@ export default function FamilyOnboardingPage() {
                 border: 'none',
                 borderRadius: 12,
                 padding: 14,
-                cursor: 'pointer',
+                cursor: address ? 'pointer' : 'default',
+                opacity: address ? 1 : 0.5,
                 marginTop: 22,
                 boxShadow: CHROME_SHADOW,
               }}
@@ -197,7 +223,9 @@ export default function FamilyOnboardingPage() {
           </div>
         )}
 
-        {step === 3 && <PixDepositCard onConfirm={handleConfirm} />}
+        {step === 3 && (
+          <UsdcDepositCard onDone={() => router.push('/family/dashboard')} />
+        )}
 
         <div
           role="group"

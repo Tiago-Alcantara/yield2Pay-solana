@@ -26,7 +26,6 @@ import { useFamily } from './_lib/FamilyProvider';
 import {
   fmtBRL,
   fmtBRLShort,
-  isValidEmail,
   numericOnly,
   parseBRL,
 } from './_lib/familyFormat';
@@ -59,9 +58,6 @@ export default function FamilyLandingPage() {
   const [extra, setExtra] = useState('');
   const [deposit, setDeposit] = useState(DEFAULT_DEPOSIT);
   const [rate, setRate] = useState(8);
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState(false);
-  const [sent, setSent] = useState(false);
 
   const calc = useMemo(() => {
     const monthly =
@@ -81,13 +77,6 @@ export default function FamilyLandingPage() {
 
   function toggleSub(id: string) {
     setPicked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const ok = isValidEmail(email);
-    setEmailError(!ok);
-    setSent(ok);
   }
 
   const sectionStyle: React.CSSProperties = {
@@ -167,8 +156,8 @@ export default function FamilyLandingPage() {
               onChange={(v) => setLang(v as FamilyLang)}
               mono
             />
-            <a
-              href="#comecar"
+            <Link
+              href="/login"
               className="btn-shine"
               style={{
                 fontSize: 14.5,
@@ -181,7 +170,7 @@ export default function FamilyLandingPage() {
               }}
             >
               {t.navCta}
-            </a>
+            </Link>
           </nav>
         </div>
       </header>
@@ -223,8 +212,8 @@ export default function FamilyLandingPage() {
             {t.heroSub}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 32 }}>
-            <a
-              href="#comecar"
+            <Link
+              href="/login"
               className="btn-shine"
               style={{
                 fontSize: 15,
@@ -237,7 +226,7 @@ export default function FamilyLandingPage() {
               }}
             >
               {t.heroCta1}
-            </a>
+            </Link>
             <a
               href="#calculadora"
               className="fam-outline"
@@ -546,8 +535,8 @@ export default function FamilyLandingPage() {
                 ))}
               </div>
 
-              <a
-                href="#comecar"
+              <Link
+                href="/login"
                 className="btn-shine"
                 style={{
                   marginTop: 'auto',
@@ -562,7 +551,7 @@ export default function FamilyLandingPage() {
                 }}
               >
                 {t.calcCta}
-              </a>
+              </Link>
               <div
                 style={{
                   fontSize: 11.5,
@@ -644,11 +633,8 @@ export default function FamilyLandingPage() {
         </div>
       </section>
 
-      {/* ── Lista de espera ───────────────────────────────────────────────── */}
-      <section
-        id="comecar"
-        style={{ ...sectionStyle, paddingBottom: 'clamp(72px,8vw,104px)' }}
-      >
+      {/* ── Login ────────────────────────────────────────────────────────── */}
+      <section style={{ ...sectionStyle, paddingBottom: 'clamp(72px,8vw,104px)' }}>
         <MetalPanel radius={26} padding={0} shadow={PANEL_SHADOW_LG}>
           <div
             style={{
@@ -688,74 +674,35 @@ export default function FamilyLandingPage() {
               </p>
             </div>
             <div style={{ flex: '0 1 380px', minWidth: 'min(280px,100%)' }}>
-              <form
-                onSubmit={handleSubmit}
-                noValidate
-                style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+              <Link
+                href="/login"
+                className="btn-shine"
+                style={{
+                  display: 'block',
+                  textAlign: 'center',
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: C.chromeInk,
+                  background: C.chromeSoft,
+                  borderRadius: 12,
+                  padding: 15,
+                  minHeight: 50,
+                  boxShadow: CHROME_SHADOW,
+                }}
               >
-                <label htmlFor="fam-email" style={cardLabel}>
-                  {t.emailLabel}
-                </label>
-                <input
-                  id="fam-email"
-                  className="fam-field"
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setEmailError(false);
-                  }}
-                  placeholder={t.emailPlaceholder}
-                  autoComplete="email"
-                  aria-invalid={emailError}
-                  style={{
-                    width: '100%',
-                    background: C.well,
-                    border: `1px solid ${emailError ? C.inputError : C.border}`,
-                    borderRadius: 12,
-                    padding: '13px 14px',
-                    color: C.textStrong,
-                    fontFamily: C.mono,
-                    fontSize: 15,
-                    outline: 'none',
-                    transition: 'border-color .2s ease',
-                  }}
-                />
-                {emailError && (
-                  <div role="alert" style={{ fontSize: 12.5, color: C.danger }}>
-                    {t.emailError}
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  className="btn-shine"
-                  style={{
-                    fontFamily: 'inherit',
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: C.chromeInk,
-                    background: C.chromeSoft,
-                    border: 'none',
-                    borderRadius: 12,
-                    padding: 15,
-                    cursor: 'pointer',
-                    minHeight: 50,
-                    boxShadow: CHROME_SHADOW,
-                  }}
-                >
-                  {sent ? t.submitSent : t.submitIdle}
-                </button>
-                <div
-                  style={{
-                    fontSize: 11.5,
-                    lineHeight: 1.5,
-                    color: C.text4,
-                    textAlign: 'center',
-                  }}
-                >
-                  {t.ctaNote}
-                </div>
-              </form>
+                {t.loginCta}
+              </Link>
+              <div
+                style={{
+                  fontSize: 11.5,
+                  lineHeight: 1.5,
+                  color: C.text4,
+                  textAlign: 'center',
+                  marginTop: 10,
+                }}
+              >
+                {t.ctaNote}
+              </div>
             </div>
           </div>
         </MetalPanel>
@@ -812,7 +759,7 @@ export default function FamilyLandingPage() {
           }}
         >
           <Link
-            href="/family/onboarding"
+            href="/login"
             className="fam-quiet"
             style={{ fontSize: 13, color: C.text3, textDecoration: 'none' }}
           >

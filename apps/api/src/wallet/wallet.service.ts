@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SolanaService } from '../solana/solana.service';
 import type { WalletBalanceView } from '@yield2pay/shared';
@@ -26,11 +27,32 @@ export class WalletService {
     }
     const usdcTokenAccount =
       await this.solana.ensureUsdcTokenAccount(solanaAddress);
-    return this.prisma.wallet.upsert({
-      where: { householdId },
-      create: { householdId, solanaAddress, usdcTokenAccount },
-      update: { solanaAddress, usdcTokenAccount },
-    });
+    try {
+      return await this.prisma.wallet.upsert({
+        where: { householdId },
+        create: { householdId, solanaAddress, usdcTokenAccount },
+        update: { solanaAddress, usdcTokenAccount },
+      });
+    } catch (e) {
+      // Concorrência: duas chamadas de ensureWallet() (ex. React Strict Mode
+      // remontando efeitos) chegam quase juntas. O upsert acima só é atômico
+      // no conflito de householdId — um conflito na constraint única de
+      // solana_address (mesmo endereço, primeira chamada já criou a linha)
+      // ainda estoura P2002. Se o vencedor da corrida já gravou o mesmo
+      // endereço, não é erro: devolve a linha existente.
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        const existing = await this.prisma.wallet.findUnique({
+          where: { householdId },
+        });
+        if (existing && existing.solanaAddress === solanaAddress) {
+          return existing;
+        }
+      }
+      throw e;
+    }
   }
 
   async getAddress(householdId: string): Promise<string> {

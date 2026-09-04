@@ -34,7 +34,8 @@ included; the Dockerfile is portable to **Railway / Fly / any** host).
    `/health` check. `DATABASE_URL` is wired from the database automatically.
 2. After the first deploy, set the secret env vars in the Render dashboard
    (marked `sync: false`): `PRIVY_APP_ID`, `PRIVY_APP_SECRET`,
-   `DEFINDEX_API_KEY`, `VAULT_ADDRESS`, `USDC_ADDRESS`, and `CORS_ORIGIN`
+   `KAMINO_MARKET_ADDRESS`, `KAMINO_RESERVE_ADDRESS`,
+   `FEE_SPONSOR_SECRET_KEY`, and `CORS_ORIGIN`
    (= your Vercel web origin, e.g. `https://yield2pay.vercel.app`).
 3. Migrations run automatically on each deploy (`prisma migrate deploy` in the
    container start command). The app listens on Render's injected `PORT`.
@@ -52,13 +53,64 @@ Fly auto-detect the Dockerfile; point the build context at the repo root.
 
 ---
 
-## 3. After both are up
+## 3. Fee sponsor (Solana treasury wallet)
 
-- Set the frontend's `NEXT_PUBLIC_API_BASE_URL` to the backend URL and redeploy
-  (Vercel redeploys on push).
-- Set the backend's `CORS_ORIGIN` to the Vercel web origin so browser calls are
-  allowed.
-- For real on-chain flows you still need: a funded Stellar wallet/vault, a real
-  DeFindex API key + vault address, and the deferred integration points pinned
-  (see the spec §10.1). Until then, money figures on the dashboard are the
-  documented placeholders.
+Every deposit/withdrawal transaction is sponsored: the sponsor keypair is the
+transaction `feePayer` and also pays the rent of the users' deposit-currency
+ATAs (real USDC on mainnet; the mock test currency in devnet-mock mode). It is
+generated once and its secret lives only in the Render dashboard (and local
+`.env`):
+
+```bash
+# generate (writes id.json — a JSON array of 64 bytes)
+solana-keygen new --no-bip39-passphrase -o sponsor.json
+# devnet only: fund it (2 SOL per airdrop, rate-limited)
+solana config set --url devnet
+solana airdrop 2 $(solana-keygen pubkey sponsor.json)
+```
+
+Set `FEE_SPONSOR_SECRET_KEY` to the **contents** of `sponsor.json` (the JSON
+array), not a file path. On mainnet, fund the sponsor with real SOL and monitor
+its balance — every user ATA costs ~0.002 SOL of rent plus ~0.000005 SOL per
+transaction.
+
+## 4. On-chain checklist (per environment)
+
+- `SOLANA_CLUSTER` / `SOLANA_RPC_URL` — match the environment (`devnet` +
+  `https://api.devnet.solana.com`, or `mainnet-beta` + a paid RPC like
+  Helius/QuickNode; the public mainnet RPC is not usable for an app).
+- `USDC_MINT` — in devnet-mock mode this is **not** real USDC. Run
+  `node apps/api/scripts/create-mock-devnet-mints.cjs` once; it prints both
+  `USDC_MINT` (a mock "Real" test currency the sponsor controls) and
+  `MOCK_VAULT_SHARE_MINT`. Fund a test wallet with
+  `node apps/api/scripts/mint-test-currency.cjs <wallet> <amount>` — no
+  external faucet needed.
+- `VAULT_PROVIDER` — `mock` for devnet testing (no Kamino reserve exists on
+  devnet — Kamino's Scope oracle isn't deployed there). `kamino` requires
+  mainnet or Kamino's staging environment and is out of scope for devnet
+  deploys.
+- `KAMINO_MARKET_ADDRESS` / `KAMINO_RESERVE_ADDRESS` — only required when
+  `VAULT_PROVIDER=kamino` (get the real addresses from app.kamino.finance).
+  Not needed for the devnet-mock setup above.
+- Sponsor funded (see section 3).
+- `CORS_ORIGIN` set to the web origin (unset = reflect any origin, dev only).
+
+## 5. Smoke test (run after every deploy)
+
+Manual, ~5 minutes. Fund a test wallet with the mock currency via
+`node apps/api/scripts/mint-test-currency.cjs <wallet> <amount>` (no external
+faucet needed), then:
+
+1. Open the web URL → login with Privy (Google) → `/family/dashboard` renders
+   with `0%` and no console errors.
+2. `GET {api}/health` returns 200.
+3. `/family/deposito` shows the embedded wallet address (matches the Privy
+   wallet).
+4. Deposit a small amount → transaction confirms → dashboard principal
+   increases by the amount.
+5. `/family/saque` → withdraw part of it → transaction confirms → wallet
+   balance increases.
+6. Check sponsor SOL balance decreased (fees + rent).
+
+If any step fails, the API logs (`[HTTP]` lines for status >= 400) are the
+first place to look.

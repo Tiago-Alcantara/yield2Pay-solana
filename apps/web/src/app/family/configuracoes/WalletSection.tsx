@@ -4,14 +4,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { C } from '../_lib/familyTheme';
 import { useFamily } from '../_lib/FamilyProvider';
-import { fmtBRL } from '../_lib/familyFormat';
+import { fmtUsdc } from '../_lib/familyFormat';
 import { GhostPill } from '../_components/FamilyUI';
+import { useWallet } from '@/lib/useWallet';
 
 type MovKind = 'entrada' | 'saida' | 'pagamento';
 
 /** Carteira: endereço, extrato e exportações. Extrato ainda é exemplo fixo. */
 export function WalletSection() {
-  const { t, state } = useFamily();
+  const { t } = useFamily();
+  const { address: walletAddress } = useWallet();
   const [filter, setFilter] = useState<'todos' | MovKind>('todos');
   const [copied, setCopied] = useState(false);
   const [csvDone, setCsvDone] = useState(false);
@@ -59,11 +61,11 @@ export function WalletSection() {
               wordBreak: 'break-all',
             }}
           >
-            {state.walletAddress}
+            {walletAddress ?? '—'}
           </span>
           <GhostPill
             onClick={() => {
-              void navigator.clipboard?.writeText(state.walletAddress).catch(() => {});
+              void navigator.clipboard?.writeText(walletAddress ?? '').catch(() => {});
               flash(setCopied);
             }}
           >
@@ -163,7 +165,7 @@ export function WalletSection() {
                 }}
               >
                 {h.v >= 0 ? '+ ' : '− '}
-                {fmtBRL(Math.abs(h.v))}
+                {fmtUsdc(Math.abs(h.v))}
               </span>
             </div>
           ))}

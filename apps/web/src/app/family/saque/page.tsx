@@ -1,36 +1,48 @@
 'use client';
 
 /**
- * Saque por PIX — /family/saque
+ * Resgate do cofre — /family/saque
  *
- * O botão "Sacar meu saldo" existe no painel do design, mas a tela em si não
- * foi desenhada. Esta é a versão mínima na mesma linguagem visual, para o fluxo
- * não terminar em beco sem saída: valor, chave PIX de destino e confirmação.
- * Quando a Kamino entrar, `withdraw()` vira o resgate no cofre.
+ * O resgate devolve USDC do cofre Kamino para a carteira desta conta. O fluxo
+ * é o mesmo do aporte (useSolanaTx): backend monta, Privy assina, backend envia.
+ * O limite é o `spendable` do dashboard — o principal também pode ser sacado,
+ * então o teto é o vaultValue inteiro.
  */
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { C, CHROME_SHADOW, cardLabel } from '../_lib/familyTheme';
 import { useFamily } from '../_lib/FamilyProvider';
-import { fmtBRL, numericOnly, parseBRL } from '../_lib/familyFormat';
+import { fmtUsdc, numericOnly, parseUsdc, toBaseUnitsString } from '../_lib/familyFormat';
+import { useFamilyData } from '../_lib/useFamilyData';
+import { useSolanaTx } from '@/lib/useSolanaTx';
+import { useWallet } from '@/lib/useWallet';
 import { FamilyBrand } from '../_components/FamilyUI';
+
+type Phase = 'idle' | 'running' | 'error';
 
 export default function FamilyWithdrawPage() {
   const router = useRouter();
-  const { t, state, withdraw } = useFamily();
+  const { t } = useFamily();
+  const { dashboard, loading } = useFamilyData();
+  const { withdraw } = useSolanaTx();
+  const { address } = useWallet();
   const [amount, setAmount] = useState('');
   const [error, setError] = useState(false);
+  const [phase, setPhase] = useState<Phase>('idle');
 
-  const parsed = parseBRL(amount);
+  const vaultValue = dashboard ? Number(dashboard.vaultValue) / 10 ** 6 : 0;
+  const parsed = parseUsdc(amount);
 
   function handleConfirm() {
-    if (parsed < 1 || parsed > state.deposit) {
+    if (parsed < 0.000001 || parsed > vaultValue) {
       setError(true);
       return;
     }
-    withdraw(parsed);
-    router.push('/family/dashboard');
+    setPhase('running');
+    withdraw(toBaseUnitsString(parsed))
+      .then(() => router.push('/family/dashboard'))
+      .catch(() => setPhase('error'));
   }
 
   return (
@@ -83,9 +95,10 @@ export default function FamilyWithdrawPage() {
               type="button"
               className="fam-quiet"
               onClick={() => {
-                setAmount(String(state.deposit).replace('.', ','));
+                setAmount(vaultValue.toFixed(2).replace('.', ','));
                 setError(false);
               }}
+              disabled={loading || vaultValue <= 0}
               style={{
                 fontFamily: C.mono,
                 fontSize: 11.5,
@@ -103,13 +116,15 @@ export default function FamilyWithdrawPage() {
             id="fam-saque-valor"
             className="fam-field"
             type="text"
-            inputMode="numeric"
+            inputMode="decimal"
             value={amount}
             onChange={(e) => {
               setAmount(numericOnly(e.target.value));
               setError(false);
+              setPhase('idle');
             }}
             placeholder="0"
+            disabled={phase === 'running'}
             aria-invalid={error}
             style={{
               width: '100%',
@@ -140,7 +155,7 @@ export default function FamilyWithdrawPage() {
             }}
           >
             <span>{t.withdraw.available}</span>
-            <span>{fmtBRL(state.deposit)}</span>
+            <span>{loading ? '…' : fmtUsdc(vaultValue)}</span>
           </div>
 
           <div
@@ -152,17 +167,17 @@ export default function FamilyWithdrawPage() {
               padding: 16,
             }}
           >
-            <div style={cardLabel}>{t.withdraw.keyLabel}</div>
+            <div style={cardLabel}>{t.withdraw.walletLabel}</div>
             <div
               style={{
                 fontFamily: C.mono,
-                fontSize: 14,
+                fontSize: 12,
                 color: C.textStrong,
                 marginTop: 6,
                 wordBreak: 'break-all',
               }}
             >
-              {state.pixKey}
+              {address ?? '—'}
             </div>
           </div>
 
@@ -170,6 +185,7 @@ export default function FamilyWithdrawPage() {
             type="button"
             className="btn-shine"
             onClick={handleConfirm}
+            disabled={phase === 'running'}
             style={{
               width: '100%',
               fontFamily: 'inherit',
@@ -180,12 +196,13 @@ export default function FamilyWithdrawPage() {
               border: 'none',
               borderRadius: 12,
               padding: 14,
-              cursor: 'pointer',
+              cursor: phase === 'running' ? 'default' : 'pointer',
+              opacity: phase === 'running' ? 0.5 : 1,
               marginTop: 20,
               boxShadow: CHROME_SHADOW,
             }}
           >
-            {t.withdraw.confirm}
+            {phase === 'running' ? t.onboarding.usdcStatusSubmitting : t.withdraw.confirm}
           </button>
           <button
             type="button"

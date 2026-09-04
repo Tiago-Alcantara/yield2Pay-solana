@@ -1,5 +1,4 @@
 import type { FamilyLang } from './familyI18n';
-import type { FamilySub } from './familyMath';
 
 /**
  * Store das telas de família.
@@ -43,16 +42,7 @@ export interface FamilyNotifications {
 
 export interface FamilyState {
   lang: FamilyLang;
-  /** Já passou pelo onboarding (login + primeiro depósito). */
-  onboarded: boolean;
-  /** Saldo depositado, em R$. */
-  deposit: number;
-  /** Cenário de rendimento escolhido: 6, 8 ou 10 (% a.a.). */
-  rate: number;
-  subs: FamilySub[];
   profile: FamilyProfile;
-  walletAddress: string;
-  pixKey: string;
   twoFA: boolean;
   devices: FamilyDevice[];
   autoDeposit: { on: boolean; amount: string; freq: string };
@@ -61,15 +51,6 @@ export interface FamilyState {
 
 export const DEFAULT_FAMILY_STATE: FamilyState = {
   lang: 'pt',
-  onboarded: false,
-  deposit: 0,
-  rate: 8,
-  subs: [
-    { id: 'netflix', name: 'Netflix', price: 59.9, dia: 5 },
-    { id: 'spotify', name: 'Spotify Família', price: 34.9, dia: 8 },
-    { id: 'chatgpt', name: 'ChatGPT', price: 107, dia: 12 },
-    { id: 'academia', name: 'Academia', price: 129.9, dia: 10 },
-  ],
   profile: {
     name: 'Ana & Pedro',
     email: 'ana.pedro@email.com',
@@ -77,8 +58,6 @@ export const DEFAULT_FAMILY_STATE: FamilyState = {
     cpfMask: '•••.456.789-••',
     hasPhoto: false,
   },
-  walletAddress: 'GBRL…4F2K',
-  pixKey: 'ana.pedro@email.com',
   twoFA: true,
   devices: [
     { id: 'd1', name: 'iPhone de Ana', sub: 'Este aparelho · agora', current: true },
@@ -92,10 +71,7 @@ export const DEFAULT_FAMILY_STATE: FamilyState = {
   },
 };
 
-/** Depósito semeado quando a família conclui o onboarding sem digitar valor. */
-export const SEED_DEPOSIT = 30000;
-
-const STORAGE_KEY = 'y2p:family:v1';
+const STORAGE_KEY = 'y2p:family:v2';
 
 let current: FamilyState = DEFAULT_FAMILY_STATE;
 let restored = false;

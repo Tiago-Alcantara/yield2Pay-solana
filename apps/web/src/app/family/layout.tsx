@@ -11,10 +11,11 @@ export const metadata: Metadata = {
 /**
  * Layout de /family — a vertical de famílias.
  *
- * Aqui ainda não há AuthGate: Privy e Kamino entram numa
- * segunda etapa. Por ora o FamilyProvider guarda todo o estado das telas
- * (depósito, assinaturas, preferências) no cliente, para os fluxos poderem ser
- * percorridos de ponta a ponta.
+ * A landing (/family) e as páginas educacionais (/family/conceitos,
+ * /family/onboarding) são públicas. As telas do app (dashboard, depósito,
+ * saque, configurações) têm layout próprio com AuthGate: exigem login Privy
+ * e provisionam/registram a carteira Solana embedded no primeiro acesso.
+ * Depósito e saque seguem mock — dinheiro e assinaturas entram depois.
  */
 export default function FamilyLayout({ children }: { children: React.ReactNode }) {
   return <FamilyProvider>{children}</FamilyProvider>;

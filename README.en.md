@@ -1,19 +1,19 @@
 <div align="center">
 
-# Yield2Pay
+# Yield2Pay · Solana
 
 ### The yield on your own money pays your subscriptions.<br/>And the money stays yours.
 
-You deposit once. It earns yield in a DeFi vault on Stellar.<br/>
+You deposit once. It earns yield in a DeFi vault on Solana.<br/>
 **Only the yield** pays Netflix, Spotify, ChatGPT, the gym.<br/>
 The principal stays **100% yours** — withdraw it whenever you want.
 
 <br/>
 
-![Status](https://img.shields.io/badge/status-testnet_MVP_%2B_families_prototype-2ea44f?style=for-the-badge&labelColor=0c0d0f)
+![Status](https://img.shields.io/badge/status-backend_devnet_%2B_families_prototype-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 ![Custody](https://img.shields.io/badge/100%25-non--custodial-C0C2C5?style=for-the-badge&labelColor=0c0d0f)
-![Network](https://img.shields.io/badge/Stellar-Soroban-1e40af?style=for-the-badge&labelColor=0c0d0f)
-![Currency](https://img.shields.io/badge/currency-USDC-2775CA?style=for-the-badge&labelColor=0c0d0f)
+![Network](https://img.shields.io/badge/Solana-devnet-9945FF?style=for-the-badge&logo=solana&labelColor=0c0d0f)
+![Currency](https://img.shields.io/badge/currency-Real_(mock_on_devnet)-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 
 [🇧🇷 Português](README.md) · **🇺🇸 English**
 
@@ -24,11 +24,11 @@ The principal stays **100% yours** — withdraw it whenever you want.
 </div>
 
 > [!NOTE]
-> **Restructuring in progress.** Yield2Pay started out 100% B2B — a company's idle cash paid for its
-> own SaaS. We're opening a **financial-freedom vertical for individuals, couples and families**:
-> the same yield engine, now paying everyday subscriptions. The families vertical now **leads** the
-> product; [corporate treasury](#-corporate-treasury-b2b--complementary-product) continues as a
-> **complementary** product. Both run on the same non-custodial infrastructure.
+> **This repo is Yield2Pay on Solana.** A fork of the original base (Stellar/Soroban, with the B2B
+> vertical and the Etherfuse ramp) migrated to **Solana** with a single product: the **families
+> vertical**. The on-chain engine was rewritten — what was `stellar/` + fee-bump is now `solana/` +
+> a sponsored fee payer; the DeFindex vault gives way to **Kamino Lend**; the PIX ramp left the MVP
+> and went back to the [roadmap](#-roadmap). The original Stellar repo lives on as `FixEarn`.
 
 ---
 
@@ -84,9 +84,9 @@ only counts as *covered* once the running total up to it fits inside the monthly
 
 ```mermaid
 flowchart LR
-    A("🔑 <b>Social login</b><br/>Google · Apple<br/><i>wallet created instantly</i>")
-    B("💸 <b>PIX deposit</b><br/>BRL converted to USDC")
-    C("🏦 <b>DeFindex vault</b><br/>Soroban · Stellar")
+    A("🔑 <b>Social login</b><br/>Google · Apple<br/><i>embedded Solana wallet</i>")
+    B("💸 <b>USDC deposit</b><br/>on-chain · devnet")
+    C("🏦 <b>Kamino Lend vault</b><br/>Solana · USDC")
     D("📈 <b>The month's yield</b><br/>and only that")
     E("📺 <b>Subscriptions paid</b><br/>Netflix · Spotify · gym")
     F("🙋 <b>Principal</b><br/>100% yours · withdraw anytime")
@@ -100,36 +100,52 @@ flowchart LR
     class F keep
 ```
 
-1. **Social login** (Google/Apple) → wallet created automatically, no seed phrase.
-2. **PIX deposit** → converted to **USDC** → allocated to the **DeFindex** vault (Soroban).
-3. **Register your subscriptions** — name, amount, due date.
-4. **Reverse calculator** — how much more you'd need to deposit to cover each bill.
+1. **Social login** (Google/Apple) → embedded Solana wallet created by Privy, no seed phrase.
+2. **Wallet registration** → the backend validates the address and creates the family's **USDC
+   ATA** — rent and fees paid by the treasury (sponsored fee payer).
+3. **USDC deposit** → the backend builds the sponsored transaction, the client signs it in the
+   embedded wallet, the amount goes into the vault. *The PIX ⇄ USDC ramp returns on the roadmap —
+   today the deposit is direct in USDC (devnet).*
+4. **Register your subscriptions** — name, amount, due date, priority order, who uses it.
 5. **Dashboard** — freedom percentage, balance, yield and history.
 
 ---
 
 ## 📱 The `/family` screens
 
-Eight routes, bilingual (PT/EN), walkable end to end in
+Eight routes, bilingual (PT/EN), **responsive on mobile** (scale centralized in `--fam-*`
+variables, single breakpoint at 640px) and walkable end to end in
 [`apps/web/src/app/family/`](apps/web/src/app/family/):
 
 | Route | What it does |
 |---|---|
 | [`/family`](apps/web/src/app/family/page.tsx) | Landing: hero, **freedom calculator**, how it works, what's behind it, waitlist |
 | [`/family/onboarding`](apps/web/src/app/family/onboarding/) | Account and wallet setup |
-| [`/family/deposito`](apps/web/src/app/family/deposito/) | PIX deposit (`PixDepositCard`) |
+| [`/family/deposito`](apps/web/src/app/family/deposito/) | Deposit (`PixDepositCard`) |
 | [`/family/dashboard`](apps/web/src/app/family/dashboard/) | Freedom percentage, balance, subscriptions, history |
 | [`/family/dashboard/[subId]`](apps/web/src/app/family/dashboard/) | Single-subscription detail |
 | [`/family/saque`](apps/web/src/app/family/saque/) | Principal withdrawal |
 | [`/family/conceitos`](apps/web/src/app/family/conceitos/) | Wallet, stablecoin, yield + FAQ |
-| [`/family/configuracoes`](apps/web/src/app/family/configuracoes/) | Profile, security, wallet, PIX, subscriptions, notifications, privacy (LGPD) |
+| [`/family/configuracoes`](apps/web/src/app/family/configuracoes/) | Profile, security, wallet, subscriptions, notifications, privacy (LGPD) |
 
 > [!IMPORTANT]
 > **What is NOT wired up yet.** These screens are **frontend only**. The numbers are computed
-> client-side, with **no Privy, DeFindex or PIX behind them** in this vertical, and the waitlist only
+> client-side, with **no Privy, vault or API behind them** in this vertical, and the waitlist only
 > validates the email and shows a "sent" state — nothing is persisted. The real backend (auth,
-> deposit, withdraw, bills, ledger) **already runs on testnet** for the B2B product; what's missing
-> is **wiring the family screens into it** — see the [roadmap](#-roadmap).
+> household, wallet, deposit, withdraw, subs, ledger) **already runs on devnet**; what's missing is
+> **wiring the family screens into it** — see the [roadmap](#-roadmap).
+
+> [!WARNING]
+> **Kamino doesn't run on devnet.** The oracle every Kamino Lend reserve
+> requires (Scope, `HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ`) isn't
+> deployed on devnet — confirmed by querying the on-chain program directly.
+> Without Scope, no Kamino reserve works on that cluster; using real Kamino
+> requires mainnet (or Kamino's staging environment, which also runs on
+> mainnet infrastructure). That's why this repo's devnet setup tests the full
+> flow (deposit, withdraw, dashboard) with a **mock vault**
+> (`VAULT_PROVIDER=mock`): two test SPL tokens — a "test Real" standing in for
+> USDC, and a share token — no real yield, no external faucet dependency. See
+> [`docs/superpowers/plans/2026-09-04-mock-vault-devnet.md`](docs/superpowers/plans/2026-09-04-mock-vault-devnet.md).
 
 <details>
 <summary><b>Internal structure of the vertical</b></summary>
@@ -138,7 +154,7 @@ Eight routes, bilingual (PT/EN), walkable end to end in
 apps/web/src/app/family/
 ├── page.tsx           → landing + calculator
 ├── layout.tsx         → FamilyProvider (client-side state, no AuthGate)
-├── family.css         → vertical theme
+├── family.css         → vertical theme + responsive scale (--fam-*)
 ├── _lib/
 │   ├── familyMath.ts     → freedom percentage (coverage, reverse calculator)
 │   ├── familyI18n.ts     → PT dictionary (source) + EN
@@ -160,40 +176,39 @@ Tests: `familyMath.test.ts`, `familyFormat.test.ts`, `family.test.tsx`.
 
 ## 🧩 What's behind it
 
-The blockchain hides behind a Web2 experience — Google login, PIX, values in reais. Three pieces
-hold that up:
+The blockchain hides behind a Web2 experience — Google login, values in reais. Three pieces hold
+that up:
 
 ```mermaid
 flowchart TB
-    U("🙋 <b>You</b><br/>Google login · PIX · values in reais")
+    U("🙋 <b>You</b><br/>Google login · values in reais")
 
     subgraph tripe["The Web2.5 tripod"]
         direction LR
-        P("🔐 <b>Privy</b><br/>identity + wallet<br/>no seed phrase")
-        R("🏧 <b>Etherfuse Ramp</b><br/>BRL ⇄ USDC via PIX")
-        D("📈 <b>DeFindex</b><br/>yield engine")
+        P("🔐 <b>Privy</b><br/>identity + wallet<br/>embedded Solana, no seed phrase")
+        S("⛽ <b>Sponsored fee payer</b><br/>tx fees and ATA rent<br/>paid by the treasury")
+        K("📈 <b>Kamino Lend</b><br/>yield engine<br/><i>being wired</i>")
     end
 
-    V("🏦 <b>Vault on Stellar / Soroban</b><br/>your USDC earning")
+    V("🏦 <b>Vault on Solana</b><br/>your USDC earning")
 
     U --> P
-    U --> R
     P --> V
-    R --> V
-    D --> V
+    S --> V
+    K --> V
 
     classDef box fill:#131417,stroke:#3c3f44,stroke-width:1px,color:#E6E8EA
     classDef vault fill:#0c0d0f,stroke:#C0C2C5,stroke-width:2px,color:#E6E8EA
-    class U,P,R,D box
+    class U,P,S,K box
     class V vault
     style tripe fill:#0c0d0f00,stroke:#3c3f44,stroke-dasharray:4 4,color:#9A9DA1
 ```
 
 | Pillar | Role | Why this way |
 |---|---|---|
-| **Privy** | Embedded wallet via Google/Apple login. Split key — only you sign. | No seed phrase, no extension: the crypto entry barrier disappears. |
-| **Etherfuse Ramp** | BRL ↔ USDC over **PIX**. *Hosted* KYC/KYB. | The platform **never touches BRL**; the user pays an ordinary PIX. |
-| **DeFindex** | Indexed vaults on Soroban capturing the network's APY. | Yield comes from open, audited protocols — not from a promise of ours. |
+| **Privy** | Embedded Solana wallet via Google/Apple login. The client is the only signer. | No seed phrase, no extension: the crypto entry barrier disappears. |
+| **Sponsored fee payer** | The treasury builds every transaction as fee payer and partially signs it; the USDC ATA rent is on it too. | The user never needs SOL — there's no fee-bump on Solana: the fee payer of the transaction pays the fee. |
+| **Kamino Lend** | USDC reserve in a Kamino market capturing the lending APY. | Yield comes from an open, audited protocol — not from a promise of ours. |
 
 ---
 
@@ -205,33 +220,33 @@ flowchart TB
 flowchart LR
     subgraph web["apps/web · Next.js 16"]
         FAM("<b>/family</b><br/>families vertical<br/><i>prototype</i>")
-        APP("<b>(app)</b><br/>B2B dashboard<br/><i>testnet</i>")
+        LOGIN("<b>/login</b><br/>Privy + AuthGate")
     end
 
     T("<b>packages/shared</b><br/>types + DTOs")
 
     subgraph api["apps/api · NestJS 11"]
-        AUTH("auth · company · wallet")
-        FLOW("deposit · withdraw · ramp<br/>bills · ledger")
-        CHAIN("stellar · vault")
+        AUTH("auth · household · wallet")
+        FLOW("deposit · withdraw<br/>subs · ledger · jobs")
+        CHAIN("solana · vault")
     end
 
     PG("🗄️ Postgres 16<br/>Prisma")
-    SOR("⛓️ Stellar · Soroban<br/>DeFindex vault")
+    SOL("⛓️ Solana · devnet<br/>USDC · Kamino Lend")
 
-    APP --> T
     FAM -.->|"to be wired"| T
+    LOGIN --> T
     T --> AUTH
     T --> FLOW
     AUTH --> PG
     FLOW --> PG
     FLOW --> CHAIN
-    CHAIN --> SOR
+    CHAIN --> SOL
 
     classDef box fill:#131417,stroke:#3c3f44,stroke-width:1px,color:#E6E8EA
     classDef ext fill:#0c0d0f,stroke:#C0C2C5,stroke-width:2px,color:#E6E8EA
-    class FAM,APP,T,AUTH,FLOW,CHAIN box
-    class PG,SOR ext
+    class FAM,LOGIN,T,AUTH,FLOW,CHAIN box
+    class PG,SOL ext
 ```
 
 Full map of project areas (business + product):
@@ -242,12 +257,15 @@ Full map of project areas (business + product):
 
 **Three decisions that explain the rest:**
 
-- **Non-custodial by design.** The backend only **builds** the transaction (XDR) and **submits** the
-  signature that came from the client. The private key never passes through the server.
-- **Fee-bump sponsor.** Every client transaction is wrapped in a `FeeBumpTransaction` — the user
-  never needs XLM for gas. The sponsor also creates their Stellar account on first access.
-- **Money as `BigInt`, never `float`.** Values in 7-decimal base units (Stellar/USDC standard); a
-  `BigInt.prototype.toJSON` shim serializes to string in the API.
+- **Non-custodial by design.** The backend only **builds** the transaction (with the treasury as
+  fee payer, partially signed) and **submits** the transaction the client fully signed in the
+  embedded wallet. The user's private key never passes through the server — and there's a guard at
+  submit: a transaction whose fee payer isn't the sponsor is rejected.
+- **The sponsor pays everything on-chain.** There's no fee-bump or "account creation" on Solana:
+  the address is already a system account. What needs to exist (and pay rent) is the **USDC ATA** —
+  created idempotently by the sponsor at wallet registration.
+- **Money as `BigInt`, never `float`.** Values in 6-decimal base units (USDC standard on Solana);
+  a `BigInt.prototype.toJSON` shim serializes to string in the API.
 
 <details>
 <summary><b>apps/api — backend modules</b></summary>
@@ -257,23 +275,23 @@ apps/api/src/
 ├── main.ts       → bootstrap: port, CORS, global ValidationPipe, BigInt.toJSON shim
 ├── config/       → env validation with Zod (fails at boot if a variable is missing)
 ├── prisma/       → PrismaService (connection lifecycle, Postgres adapter)
-├── auth/         → AuthGuard: verifies the Privy JWT and upserts the Company on login
-├── company/      → Company lifecycle (idempotent upsert by privyUserId)
-├── wallet/       → 1:1 Stellar address record; creates and funds the on-chain account
-├── vault/        → DeFindex SDK wrapper (build deposit/withdraw, APY, position)
-├── stellar/      → fee-bump sponsor, account creation, on-chain balance, submit + RPC polling
-├── deposit/      → deposit flow (fund client → build XDR → sign → submit)
-├── withdraw/     → withdrawal (mirror of deposit)
-├── ramp/         → Etherfuse ramp: PIX ⇄ USDC on/off-ramp, claim/burn, orders
-├── bills/        → recurring subscription CRUD
-├── ledger/       → principal, real vault value, spendable yield, wallet balance
-├── jobs/         → daily cron (state snapshot per account at 2am)
+├── auth/         → AuthGuard: verifies the Privy JWT; PrivyService wraps the SDK
+├── household/    → the family account (idempotent upsert by privyUserId on first login)
+├── wallet/       → 1:1 Solana address record; validates, creates the ATA, reads USDC balance
+├── solana/       → sponsored fee payer: builds a VersionedTransaction signed by the sponsor,
+│                   sends + confirms; on-curve address validation; ATA balance
+├── vault/        → the Kamino Lend vault contract (build deposit/withdraw, APY, position)
+├── deposit/      → deposit flow (build instructions → sponsored tx → client signs → submit → ledger)
+├── withdraw/     → withdrawal (mirror of deposit; negative ledger entry)
+├── subs/         → subscription CRUD + priority reorder
+├── ledger/       → principal, vault value, spendable yield, daily snapshot; demo mode
+├── jobs/         → daily cron (snapshot per household at 2am, in parallel)
 ├── health/       → GET /health
-└── common/       → pure utilities (parse-money, exception filter)
+└── common/       → pure utilities (parse-money, exception filter, error-id)
 ```
 
-Each folder is a self-contained module with its own `.spec.ts` — you can test and evolve one flow
-without touching the others.
+Each folder is a self-contained module — you can test and evolve one flow without touching the
+others.
 
 </details>
 
@@ -282,16 +300,31 @@ without touching the others.
 
 | Model | Purpose | Key fields |
 |---|---|---|
-| **Company** | Account (1:1 with a Privy user) | `privyUserId` (unique) |
-| **EtherfuseCustomer** | Ramp customer (1:1 with Company) | `customerId`, `kycStatus`, `bankAccountId` |
-| **RampOrder** | On/off-ramp order | `orderId` (unique), `type`, `status`, `amountFiat`, `burnTransaction` |
-| **Wallet** | Stellar address (1:1) | `stellarAddress` (unique) |
-| **Deposit** | Vault deposit history | `amount` (BigInt), `txHash` (unique) |
-| **RecurringBill** | Subscriptions | `vendor`, `monthlyCost` (BigInt), `type`, `status` |
+| **Household** | The family account — the tenant of everything (1:1 with a Privy user) | `privyUserId` (unique) |
+| **Member** | Person in the family; the owner has a `privyUserId`, dependents only name who uses each subscription | `name`, `isOwner` |
+| **Wallet** | The family's embedded Solana wallet (Privy, 1:1) | `solanaAddress` (unique), `usdcTokenAccount` |
+| **Deposit** | Vault deposit/withdrawal history | `amount` (BigInt, negative on withdrawal), `txSignature` (unique) |
+| **Sub** | Recurring subscription, with priority order and the member who uses it | `vendor`, `monthlyCost` (BigInt), `position` |
+| **VaultPosition** | Position in the Kamino vault (market/reserve) | `marketAddress`, `reserveAddress` |
 | **YieldSnapshot** | Daily state | `vaultValue`, `principal`, `spendable` (BigInt) |
 
-When the families vertical is wired in, it reuses this same core — and that's where the
-**"author" field per movement** comes in (see [product decisions](#-product-decisions)).
+</details>
+
+<details>
+<summary><b>🚨 Error handling — end-to-end contract</b></summary>
+
+- **Single error body** (`ApiErrorPayload` in `packages/shared`): every API exception leaves in the
+  same shape — normalized `statusCode`, `errorId` (`ERR-XXXX-XXXX`), `requestId` and timestamp.
+- **Global `AllExceptionsFilter`** (NestJS): full server-side log indexed by `errorId`;
+  `technicalDetails` (method, endpoint, stack) only outside production — 5xx in production swaps
+  the original message for a generic one.
+- **Error screens on the web**: `error.tsx`, `global-error.tsx`, `not-found.tsx` + the `ErrorPage`
+  (full screen), `ErrorDialog` (popup) and `TechnicalPanel` components.
+- **`ErrorDialogProvider` + `errorNotifications` store**: every API client failure opens the
+  popup — one dialog at a time, deduped by status.
+- **`APP_ENV`** (`production|staging|development`), separate from `NODE_ENV`; the technical panel
+  only enters the bundle in staging (`SHOW_TECHNICAL_DETAILS`, build-time gate via
+  `NEXT_PUBLIC_APP_ENV`).
 
 </details>
 
@@ -305,25 +338,24 @@ apps/web/src/
 │   ├── login/        → Google OAuth via Privy
 │   ├── family/       → families vertical (prototype)
 │   ├── tokens/       → design tokens as CSS custom properties (--fx-*)
-│   └── (app)/        → authenticated B2B route group (AuthGate + LangProvider)
-│       ├── dashboard/  → MoneyPanel (wallet ↔ real vault), 8-service catalog
-│       ├── deposit/    → 3-step wizard
-│       └── withdraw/   → withdrawal flow
+│   ├── error.tsx · global-error.tsx · not-found.tsx → error routes
+│   └── favicon.ico
 ├── components/       → MetalCard, Button, Input, Badge, ErrorDialog…
-├── lib/              → api.ts (fetch + JWT), money.ts, hooks, i18n, errors
+├── lib/              → api.ts (fetch + JWT), useWallet, useSolanaTx, money, hooks, i18n, errors
 └── providers/        → Providers, PrivyProviderWrapper, AuthGate, ErrorDialogProvider
 ```
 
+- **`AuthGate` provisions the wallet**: after Privy login, calls `ensureWallet()` once — creates
+  the embedded Solana wallet and registers it with the backend.
 - **No Tailwind, no charting library.** Styling via **design tokens** (`--fx-*`) + inline styles.
-  "Private bank" aesthetic: monochrome black/silver, brushed-metal surfaces, dark mode. The
-  dashboard chart is pure CSS.
+  "Private bank" aesthetic: monochrome black/silver, brushed-metal surfaces, dark mode. The chart
+  is pure CSS.
 - **`/family` sits outside the `AuthGate`** — it runs with no credentials at all, which makes the
   vertical walkable in any clone of the repo.
-- **`packages/shared`** defines the contract once (`Bill`, `SpendableView`, tx DTOs) and both sides
+- **`packages/shared`** defines the contract once (`Sub`, `SpendableView`, tx DTOs) and both sides
   consume it: end-to-end type safety without publishing an SDK.
 
-Versioned visual reference in [`design/`](design/): `tokens/`, `components/`, `ui_kits/`
-(high-fidelity HTML screens), `nemPages/` (error screens), `guidelines/`, `docs/`.
+Versioned visual reference in [`design/`](design/).
 
 </details>
 
@@ -334,7 +366,7 @@ Versioned visual reference in [`design/`](design/): `tokens/`, `components/`, `u
 |---|---|---|
 | `docker-compose.yml` | Local Postgres 16 on port **5433** | Doesn't clash with the host's Postgres (5432). |
 | `apps/api/Dockerfile` | Multi-stage build, runs `prisma migrate deploy` on start | Migrations applied automatically on deploy. |
-| `render.yaml` | Managed Postgres + API in Docker, health `/health` | One-click reproducible backend. |
+| `render.yaml` | Managed Postgres + API in Docker, health `/health`, devnet envs | One-click reproducible backend. |
 | `docs/DEPLOY.md` | Web → **Vercel**, API + DB → **Render** | Split deploy: SSR on Vercel, container on Render. |
 
 </details>
@@ -349,15 +381,16 @@ Versioned visual reference in [`design/`](design/): `tokens/`, `components/`, `u
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=0c0d0f)
 ![Prisma](https://img.shields.io/badge/Prisma_7-2D3748?style=flat-square&logo=prisma&logoColor=white&labelColor=0c0d0f)
 ![Postgres](https://img.shields.io/badge/Postgres_16-4169E1?style=flat-square&logo=postgresql&logoColor=white&labelColor=0c0d0f)
-![Stellar](https://img.shields.io/badge/Stellar_SDK-7D00FF?style=flat-square&logo=stellar&logoColor=white&labelColor=0c0d0f)
+![Solana](https://img.shields.io/badge/Solana_web3.js-9945FF?style=flat-square&logo=solana&labelColor=0c0d0f)
+![SPL Token](https://img.shields.io/badge/SPL_Token-14F195?style=flat-square&logo=solana&labelColor=0c0d0f)
 ![Privy](https://img.shields.io/badge/Privy-6A6FF5?style=flat-square&labelColor=0c0d0f)
-![DeFindex](https://img.shields.io/badge/DeFindex_SDK-C0C2C5?style=flat-square&labelColor=0c0d0f)
+![Kamino](https://img.shields.io/badge/Kamino_Lend-C0C2C5?style=flat-square&labelColor=0c0d0f)
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white&labelColor=0c0d0f)
 ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white&labelColor=0c0d0f)
 
-**Tests:** Vitest on both apps. On the backend, specs per service/guard plus **opt-in** integration
-tests (`RUN_INTEGRATION=1`) hitting the real testnet. On the frontend, Vitest + Testing Library
-covering hooks, utils, components, error screens and the `/family` math.
+**Tests:** Vitest on both apps. On the backend, specs for the utilities and the exception filter;
+on the frontend, Vitest + Testing Library covering the API client, hooks (`useWallet`), providers
+(`AuthGate`, `ErrorDialogProvider`), error screens, the landing and the `/family` math.
 
 ---
 
@@ -365,106 +398,63 @@ covering hooks, utils, components, error screens and the `/family` math.
 
 | Decision | What we settled on | Why |
 |---|---|---|
-| **Single currency: USDC** | XLM and USDT dropped | Don't expose the user to **FX**. Someone saving in reais wants predictability, and one stablecoin keeps the mental model simple. |
-| **No family vault in the MVP** | Individual accounts | Shared custody (several people on one wallet) brings signing complexity the MVP can't carry. **Deferred, not dropped.** |
-| **"Author" field from day one** | Every movement records who made it | Even without a family vault today, this lets us migrate to family accounts **without rewriting history**. |
+| **Single currency: USDC** | One stablecoin as the only unit of account | Don't expose the family to FX. Someone saving in reais wants predictability. |
+| **Vault: Kamino Lend** | USDC reserve in a Kamino market | Lending yield from an open, audited protocol, with a position redeemable at any time. |
+| **Members name, they don't log in** | `Member` is a name record; only the owner has a `privyUserId` | Every subscription knows who uses it, without shared-custody complexity in the MVP. **Deferred, not dropped.** |
+| **Always-sponsored gas** | Treasury as fee payer + ATA rent | A family arriving through Google login never needs to buy SOL. |
 
 ---
 
 ## 🗺️ Roadmap
 
-**Where we are:** the B2B product runs **end to end on Stellar testnet** — Privy auth, automatic
-account creation and funding, gas sponsored via fee-bump, real deposits/withdrawals in the DeFindex
-vault, on-chain balance, service catalog, bills and a daily snapshot. The **Etherfuse ramp**
-(PIX ⇄ USDC) is **coded and wired** into deposit and withdrawal, running against the **sandbox** —
-with automatic *mock mode* when the API key is absent. The **families** vertical is a **frontend
-prototype**. The custom escrow contract remains **specified, not coded**.
+**Where we are:** the families-vertical backend runs on **Solana devnet** — Privy auth with the
+household created on first login, wallet registration with a **sponsored USDC ATA**, sponsored
+transactions (fee payer) with a guard against a foreign fee payer, ledger with principal / spendable
+/ daily 2am snapshot, subscription CRUD + reorder, and a **demo mode** (`DEMO_YIELD_BPS`) that
+injects synthetic yield for the UI before the vault earns for real. The **Kamino Lend vault is
+specified, not wired** — `vault/` has the full contract, plugging the SDK
+(`@kamino-finance/klend-sdk`) is pending. The `/family` screens remain a **frontend prototype**.
+There's no fiat ramp — deposits are direct in USDC.
 
 ### Families vertical
 
 | | Item | Status |
 |:---:|---|---|
-| 🎨 | `/family` screens — 8 routes, PT/EN, complete flows | ✅ **walkable prototype** |
-| 🔌 | Wire `/family` into the backend (auth · deposit · withdraw · bills · ledger) | 🚧 **next** |
+| 🎨 | `/family` screens — 8 routes, PT/EN, responsive, complete flows | ✅ **walkable prototype** |
+| 🏦 | Wire the Kamino SDK in `vault/` (deposit/withdraw/APY/position already specified) | 🚧 **next** |
+| 🔌 | Wire `/family` into the backend (auth · wallet · deposit · withdraw · subs · ledger) | 🚧 **next** |
 | 💾 | Persist the freedom percentage server-side (today client-only) | 📋 planned |
-| 👤 | **"Author"** field on every movement (prepares family accounts) | 📋 planned |
 | ✉️ | Wire up the waitlist (today it only validates and shows "sent") | 📋 planned |
-| 🔑 | Google/Apple social login connected to Privy in the vertical | 📋 planned |
+| 👤 | Dependents who log in (migrate `Member` to a real account) | 📋 planned |
 
-### On-chain and ramp — shared with B2B
+### On-chain and money
 
 | | Item | Status |
 |:---:|---|---|
-| 🏧 | **Etherfuse ramp** (BRL↔USDC over PIX): `ramp/` module, on/off-ramp, claim/burn, `RampOrder` | ✅ **coded, sandbox** |
-| 🔔 | **HMAC webhook** from Etherfuse — status comes from *polling* + `POST /ramp/onramp/simulate` today | 📋 planned |
-| 🔐 | Production Etherfuse key (KYB approved) to leave the sandbox | 📋 planned |
-| 📜 | **Custom escrow contract (Soroban)**: `deposit_collateral`, `claim_yield` (95/5 split), `cancel_subscription` + events | 📋 not in the repo yet |
-| ⚙️ | Automated billing engine (`claim_yield` on due date → split → off-ramp) | 📋 planned |
-| ✂️ | Pro-rata on cancellation and access revocation via on-chain event (B2B) | 📋 planned |
+| ⛽ | Sponsored fee payer + idempotent ATA + submit guard | ✅ **coded, devnet** |
+| 📊 | Ledger: principal, spendable, daily snapshot, demo mode | ✅ **coded** |
+| 🏧 | **Fiat ramp BRL ⇄ USDC** (the Stellar fork used Etherfuse/PIX; getting a ramp back) | 📋 planned |
+| ⚙️ | Automated billing engine (redeem only the yield on due date → pay the subscription) | 📋 planned |
+| 📜 | Custom escrow (Anchor program) with revenue split | 📋 planned |
+| 🚀 | Devnet → mainnet-beta (own RPC, funded vault, revised limits) | 📋 planned |
 
 <details>
 <summary><b>Test and review</b></summary>
 
 **Test**
-- [ ] **Opt-in** integration (`RUN_INTEGRATION=1`) with real credentials — pins down 3 third-party
-      unknowns: the return field of `verifyAuthToken` (Privy); **shares → USDC** conversion in
-      `getPositionValue` (DeFindex); the real `prepare`/`submit` path on the Soroban RPC.
-- [ ] Deferred test in `apps/api/test/vault.integration-spec.ts` (swap `dfTokens` for
-      `underlyingBalance[0]` once the vault math settles).
-- [ ] Deposit E2E (`build → sign → submit → assert position`) — needs Privy credentials.
-- [ ] Per-screen visual verification (Playwright) against `design/`.
+- [ ] Deposit E2E on devnet (`build → client signs → submit → assert position`) — depends on the
+      Kamino SDK being wired and devnet USDC (faucet).
+- [ ] Spec coverage for the new services (`household`, `wallet`, `solana`, `deposit`, `subs`,
+      `ledger`) — today only `common/` has backend specs.
+- [ ] Per-screen visual verification against `design/`.
 
 **Review**
-- [ ] **CORS:** without `CORS_ORIGIN` the backend reflects **any origin** (marked "MVP only" in
-      `main.ts`). Pin the Vercel origin before production.
-- [ ] **Production secrets** on Render/Vercel: `PRIVY_*`, `DEFINDEX_API_KEY`, `VAULT_ADDRESS`,
-      `USDC_ADDRESS`, `CORS_ORIGIN`, `NEXT_PUBLIC_*`, `ETHERFUSE_*` (see `docs/DEPLOY.md`).
-- [ ] **Testnet → mainnet:** requires a funded DeFindex vault, a production Etherfuse key (KYB
-      approved) and `STELLAR_NETWORK=public`.
-
-</details>
-
----
-
-## 🏢 Corporate treasury (B2B) — complementary product
-
-Where the project started, and what still stands. Same non-custodial infrastructure; what changes is
-the audience (companies) and the size of the collateral.
-
-**The OpEx Zero thesis:** instead of paying a SaaS/API subscription out of cash, the company **locks
-collateral** in stablecoins inside a DeFi vault. Only the yield settles the subscription; the
-principal stays available for full redemption on cancellation.
-
-> *"Your idle cash pays for your software, and the cash stays yours."*
-
-```
-C = (M × 12) / Y_annual
-```
-
-**Example:** an R$ 500/month API (R$ 6,000/yr) at 12%/yr → collateral **C = R$ 50,000**. The yield
-covers all 12 payments; the R$ 50,000 stays intact. It's the freedom percentage seen from the
-company's side.
-
-<details>
-<summary><b>B2B flow lifecycles</b></summary>
-
-**Inbound (PIX → vault):** the app requests a *quote* and creates an *order* on Etherfuse → the
-client pays the PIX → Etherfuse delivers USDC to the Privy wallet via *claimable balance* → the
-client signs one tx with `ChangeTrust` + `ClaimClaimableBalance` → auto-deposit into the DeFindex
-vault.
-
-**Yield distribution:** on the due date the protocol redeems **only the period's profit**, splits
-revenue (95% provider / 5% Yield2Pay) and triggers the off-ramp (client signs the `burnTransaction`
-→ Etherfuse sends the PIX to the provider). The principal is untouched.
-
-**Outbound (cancellation):** the client signs `cancel_subscription` → the vault returns the principal
-→ pro-rata yield for days used → PIX refund to the company. API access is revoked by reading the
-on-chain event.
-
-In the current MVP the backend implements the core of this flow on testnet: on/off-ramp through the
-`ramp/` module (Etherfuse sandbox, *mock mode* without an API key), direct vault deposit/withdrawal,
-*spendable = vault value − principal*, Stellar account creation and funding, and gas via fee-bump.
-The custom escrow remains on the [roadmap](#-roadmap).
+- [ ] **CORS:** without `CORS_ORIGIN` the backend reflects **any origin**. Pin the Vercel origin
+      before production.
+- [ ] **Production secrets** on Render/Vercel: `PRIVY_*`, `KAMINO_*`, `FEE_SPONSOR_SECRET_KEY`,
+      `CORS_ORIGIN` (see `docs/DEPLOY.md`).
+- [ ] **Deposit cap:** `MAX_DEPOSIT_BASE_UNITS` is 10,000 USDC today — revisit when leaving devnet.
+- [ ] **Treasury key:** `FEE_SPONSOR_SECRET_KEY` funds all the gas — monitor its balance.
 
 </details>
 
@@ -490,9 +480,11 @@ pnpm web:test         # frontend only
 Configure `apps/api/.env` and `apps/web/.env.local` from their respective `*.example` files.
 
 > [!TIP]
-> The **`/family` vertical runs with no credentials at all** — it's frontend only. Just `pnpm dev:web`
-> and open `http://localhost:3000/family`. The authenticated screens (`/login`, `(app)`) need a real
-> `NEXT_PUBLIC_PRIVY_APP_ID`.
+> The **`/family` vertical runs with no credentials at all** — it's frontend only. Just
+> `pnpm dev:web` and open `http://localhost:3000/family`. The authenticated screens (`/login`) need
+> a real `NEXT_PUBLIC_PRIVY_APP_ID`. For the full devnet flow: generate a key with
+> `solana-keygen new` (id.json format) for `FEE_SPONSOR_SECRET_KEY`, airdrop SOL to it and get
+> devnet USDC from a faucet.
 
 ---
 
@@ -500,21 +492,13 @@ Configure `apps/api/.env` and `apps/web/.env.local` from their respective `*.exa
 
 Most documents are written in Portuguese.
 
-**Product and business**
-- [`docs/FAQ.md`](docs/FAQ.md) — FAQ, including the families vertical.
-- [`docs/PITCH.md`](docs/PITCH.md) — pitch: problem, solution, model, what already exists.
-- [`docs/GTM.md`](docs/GTM.md) — go-to-market: ICP, channels, pricing, roadmap.
+**Product**
+- [`docs/FAQ.md`](docs/FAQ.md) — FAQ.
 - [`docs/GUIA-DO-USUARIO.md`](docs/GUIA-DO-USUARIO.md) — end-user onboarding guide.
-- [`docs/PROMPT-PITCH-SLIDES.md`](docs/PROMPT-PITCH-SLIDES.md) — pitch-deck script.
 
 **Technical**
-- [`docs/Yield2Pay_Documentacao_Tecnica.md`](docs/Yield2Pay_Documentacao_Tecnica.md) — full spec
-  (§8: implemented-on-testnet vs. planned status table).
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — deploy guide (Vercel + Render).
-- [`docs/CHECKLIST-TESTES-INTEGRACOES.md`](docs/CHECKLIST-TESTES-INTEGRACOES.md) — third-party
-  integration test checklist.
-- [`docs/superpowers/specs/`](docs/superpowers/specs/) — verified designs (Etherfuse ramp).
-- [`docs/superpowers/plans/`](docs/superpowers/plans/) — task-by-task implementation plans.
+- [`docs/diagrams/`](docs/diagrams/) — overall architecture (editable Excalidraw + PNG).
 
 ---
 
@@ -526,7 +510,8 @@ Most documents are written in Portuguese.
 
 <div align="center">
 
-<sub>Yield2Pay started life as **FixEarn** and was renamed across the whole monorepo — brand, packages, infra and database.</sub>
+<sub>Yield2Pay started life as **FixEarn** , became Yield2Pay, and this repo is the
+**Solana** fork dedicated to the families vertical.</sub>
 
 <sub>A non-custodial payment tool. We are not a financial institution and do not manage third-party
 funds. Yield is variable and can be zero. The figures on this page are simulations, not projections

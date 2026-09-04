@@ -52,6 +52,10 @@ export function useSolanaTx(): {
     const { signedTransaction } = await signTransaction({
       transaction: base64ToBytes(transactionBase64),
       wallet,
+      // Privy's useSignTransaction defaults chain to 'solana:mainnet' when
+      // omitted, which fails ("No RPC configuration found") since this app
+      // only runs on devnet (see apps/api/.env SOLANA_CLUSTER).
+      chain: 'solana:devnet',
     });
 
     const { txSignature } = await submit({

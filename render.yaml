@@ -30,9 +30,19 @@ services:
         value: staging
       - key: SOLANA_RPC_URL
         value: https://api.devnet.solana.com
-      # USDC devnet. Em mainnet: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+      # Moeda de depósito. Devnet usa VAULT_PROVIDER=mock (abaixo) — este valor
+      # precisa ser o mint de "Real de teste" impresso por
+      # apps/api/scripts/create-mock-devnet-mints.cjs, não USDC de verdade.
       - key: USDC_MINT
-        value: 4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+        sync: false
+      # 'mock' porque a Kamino não tem oracle Scope em devnet — ver
+      # docs/superpowers/plans/2026-09-04-mock-vault-devnet.md. Trocar para
+      # 'kamino' exige mainnet ou o ambiente de staging da Kamino.
+      - key: VAULT_PROVIDER
+        value: mock
+      # Só usado quando VAULT_PROVIDER=mock — mesmo script de cima cria os dois.
+      - key: MOCK_VAULT_SHARE_MINT
+        sync: false
       # Set this to your deployed web origin (Vercel), e.g. https://yield2pay.vercel.app
       - key: CORS_ORIGIN
         sync: false
