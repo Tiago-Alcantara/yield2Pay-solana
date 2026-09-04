@@ -93,8 +93,9 @@ transaction.
 
 ## 5. Smoke test (run after every deploy)
 
-Manual, ~5 minutes, with a browser wallet that has devnet USDC (faucet:
-search "USDC devnet faucet" — Circle's faucet is the canonical one):
+Manual, ~5 minutes. Fund a test wallet with the mock currency via
+`node apps/api/scripts/mint-test-currency.cjs <wallet> <amount>` (no external
+faucet needed), then:
 
 1. Open the web URL → login with Privy (Google) → `/family/dashboard` renders
    with `0%` and no console errors.
