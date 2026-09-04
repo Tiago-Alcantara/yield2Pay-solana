@@ -120,6 +120,18 @@ export class MockVaultService extends VaultService {
       ]);
 
     return [
+      // Idempotente: garante a ATA de moeda do dono mesmo se o registro da
+      // carteira não tiver criado a ATA da moeda mock especificamente (a
+      // moeda mock não é a mesma que SolanaService.ensureUsdcTokenAccount
+      // cria no registro — aquela é sempre a Env.usdcMint corrente, então na
+      // prática já existe, mas o saque fica auto-suficiente sem depender
+      // disso).
+      createAssociatedTokenAccountIdempotentInstruction(
+        this.sponsor,
+        ownerCurrencyAta,
+        owner,
+        this.currencyMint,
+      ),
       createBurnInstruction(ownerShareAta, this.shareMint, owner, amountBaseUnits),
       createTransferCheckedInstruction(
         treasuryCurrencyAta,

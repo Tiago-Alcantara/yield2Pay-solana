@@ -25,6 +25,10 @@ const DECIMALS = 6;
   }
 
   const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+  if (!/devnet/i.test(rpcUrl)) {
+    console.error(`Este script só roda contra devnet. SOLANA_RPC_URL atual: ${rpcUrl}`);
+    process.exit(1);
+  }
   const secret = process.env.FEE_SPONSOR_SECRET_KEY;
   const currencyMintAddress = process.env.USDC_MINT;
   if (!secret || !currencyMintAddress) {

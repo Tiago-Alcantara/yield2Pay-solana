@@ -56,7 +56,8 @@ Fly auto-detect the Dockerfile; point the build context at the repo root.
 ## 3. Fee sponsor (Solana treasury wallet)
 
 Every deposit/withdrawal transaction is sponsored: the sponsor keypair is the
-transaction `feePayer` and also pays the rent of the users' USDC ATAs. It is
+transaction `feePayer` and also pays the rent of the users' deposit-currency
+ATAs (real USDC on mainnet; the mock test currency in devnet-mock mode). It is
 generated once and its secret lives only in the Render dashboard (and local
 `.env`):
 
@@ -88,6 +89,9 @@ transaction.
   devnet — Kamino's Scope oracle isn't deployed there). `kamino` requires
   mainnet or Kamino's staging environment and is out of scope for devnet
   deploys.
+- `KAMINO_MARKET_ADDRESS` / `KAMINO_RESERVE_ADDRESS` — only required when
+  `VAULT_PROVIDER=kamino` (get the real addresses from app.kamino.finance).
+  Not needed for the devnet-mock setup above.
 - Sponsor funded (see section 3).
 - `CORS_ORIGIN` set to the web origin (unset = reflect any origin, dev only).
 
@@ -104,7 +108,7 @@ faucet needed), then:
    wallet).
 4. Deposit a small amount → transaction confirms → dashboard principal
    increases by the amount.
-5. `/family/saque` → withdraw part of it → transaction confirms → wallet USDC
+5. `/family/saque` → withdraw part of it → transaction confirms → wallet
    balance increases.
 6. Check sponsor SOL balance decreased (fees + rent).
 

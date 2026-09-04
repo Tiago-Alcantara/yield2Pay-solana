@@ -66,6 +66,13 @@ const schema = z
           message: 'required when VAULT_PROVIDER=mock',
         });
       }
+      if (val.SOLANA_CLUSTER === 'mainnet-beta') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['VAULT_PROVIDER'],
+          message: 'mock vault is devnet-only; refusing to run on mainnet-beta',
+        });
+      }
     }
   });
 

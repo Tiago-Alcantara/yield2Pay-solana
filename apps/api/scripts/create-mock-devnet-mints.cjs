@@ -18,6 +18,10 @@ function loadSponsorKeypair(secret) {
 
 (async () => {
   const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+  if (!/devnet/i.test(rpcUrl)) {
+    console.error(`Este script só roda contra devnet. SOLANA_RPC_URL atual: ${rpcUrl}`);
+    process.exit(1);
+  }
   const secret = process.env.FEE_SPONSOR_SECRET_KEY;
   if (!secret) {
     console.error('FEE_SPONSOR_SECRET_KEY não definido em apps/api/.env');
