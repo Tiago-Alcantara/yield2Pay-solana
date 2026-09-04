@@ -495,7 +495,7 @@ Configure `apps/api/.env` e `apps/web/.env.local` a partir dos respectivos `*.ex
 
 <div align="center">
 
-<sub>Yield2Pay nasceu como **FixEarn** (Stellar), passou a Yield2Pay e este repo é o fork
+<sub>Yield2Pay nasceu como **FixEarn**, passou a Yield2Pay e este repo é o fork
 **Solana** dedicado à vertical famílias.</sub>
 
 <sub>Ferramenta de pagamento não-custodial. Não somos instituição financeira e não administramos
