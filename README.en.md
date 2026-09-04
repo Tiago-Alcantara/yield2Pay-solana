@@ -13,7 +13,7 @@ The principal stays **100% yours** — withdraw it whenever you want.
 ![Status](https://img.shields.io/badge/status-backend_devnet_%2B_families_prototype-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 ![Custody](https://img.shields.io/badge/100%25-non--custodial-C0C2C5?style=for-the-badge&labelColor=0c0d0f)
 ![Network](https://img.shields.io/badge/Solana-devnet-9945FF?style=for-the-badge&logo=solana&labelColor=0c0d0f)
-![Currency](https://img.shields.io/badge/currency-USDC-2775CA?style=for-the-badge&labelColor=0c0d0f)
+![Currency](https://img.shields.io/badge/currency-Real_(mock_on_devnet)-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 
 [🇧🇷 Português](README.md) · **🇺🇸 English**
 
@@ -134,6 +134,18 @@ variables, single breakpoint at 640px) and walkable end to end in
 > validates the email and shows a "sent" state — nothing is persisted. The real backend (auth,
 > household, wallet, deposit, withdraw, subs, ledger) **already runs on devnet**; what's missing is
 > **wiring the family screens into it** — see the [roadmap](#-roadmap).
+
+> [!WARNING]
+> **Kamino doesn't run on devnet.** The oracle every Kamino Lend reserve
+> requires (Scope, `HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ`) isn't
+> deployed on devnet — confirmed by querying the on-chain program directly.
+> Without Scope, no Kamino reserve works on that cluster; using real Kamino
+> requires mainnet (or Kamino's staging environment, which also runs on
+> mainnet infrastructure). That's why this repo's devnet setup tests the full
+> flow (deposit, withdraw, dashboard) with a **mock vault**
+> (`VAULT_PROVIDER=mock`): two test SPL tokens — a "test Real" standing in for
+> USDC, and a share token — no real yield, no external faucet dependency. See
+> [`docs/superpowers/plans/2026-09-04-mock-vault-devnet.md`](docs/superpowers/plans/2026-09-04-mock-vault-devnet.md).
 
 <details>
 <summary><b>Internal structure of the vertical</b></summary>

@@ -13,7 +13,7 @@ O principal continua **100% seu** — e sai quando você quiser.
 ![Status](https://img.shields.io/badge/status-backend_devnet_%2B_prot%C3%B3tipo_fam%C3%ADlias-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 ![Custódia](https://img.shields.io/badge/100%25-n%C3%A3o--custodial-C0C2C5?style=for-the-badge&labelColor=0c0d0f)
 ![Rede](https://img.shields.io/badge/Solana-devnet-9945FF?style=for-the-badge&logo=solana&labelColor=0c0d0f)
-![Moeda](https://img.shields.io/badge/moeda-USDC-2775CA?style=for-the-badge&labelColor=0c0d0f)
+![Moeda](https://img.shields.io/badge/moeda-Real_(mock_em_devnet)-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 
 **🇧🇷 Português** · [🇺🇸 English](README.en.md)
 
@@ -136,6 +136,19 @@ Oito rotas, bilíngues (PT/EN), **responsivas no mobile** (escala centralizada e
 > e-mail e mostra o estado "enviado" — não persiste em lugar nenhum. O backend real (auth,
 > household, wallet, deposit, withdraw, subs, ledger) **já roda na devnet**; falta **plugar as
 > telas famílias nele** — ver o [roadmap](#-roadmap).
+
+> [!WARNING]
+> **Kamino não roda em devnet.** O oracle que toda reserve Kamino Lend exige
+> (Scope, `HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ`) não está deployado
+> em devnet — confirmado consultando o programa on-chain diretamente. Sem
+> Scope, nenhuma reserve Kamino funciona nesse cluster; usar Kamino de
+> verdade exige mainnet (ou o ambiente de staging da Kamino, que também roda
+> sobre infraestrutura mainnet). Por isso a devnet deste repo testa o fluxo
+> completo (depósito, saque, dashboard) com um **cofre mock**
+> (`VAULT_PROVIDER=mock`): dois SPL tokens de teste — uma moeda "Real de
+> teste" no lugar de USDC e um token de cota — sem rendimento real e sem
+> depender de nenhum faucet externo. Ver
+> [`docs/superpowers/plans/2026-09-04-mock-vault-devnet.md`](docs/superpowers/plans/2026-09-04-mock-vault-devnet.md).
 
 <details>
 <summary><b>Estrutura interna da vertical</b></summary>

@@ -78,10 +78,16 @@ transaction.
 - `SOLANA_CLUSTER` / `SOLANA_RPC_URL` — match the environment (`devnet` +
   `https://api.devnet.solana.com`, or `mainnet-beta` + a paid RPC like
   Helius/QuickNode; the public mainnet RPC is not usable for an app).
-- `USDC_MINT` — devnet `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`,
-  mainnet `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`.
-- `KAMINO_MARKET_ADDRESS` / `KAMINO_RESERVE_ADDRESS` — from the plan 1
-  investigation notes; both must exist on the chosen cluster.
+- `USDC_MINT` — in devnet-mock mode this is **not** real USDC. Run
+  `node apps/api/scripts/create-mock-devnet-mints.cjs` once; it prints both
+  `USDC_MINT` (a mock "Real" test currency the sponsor controls) and
+  `MOCK_VAULT_SHARE_MINT`. Fund a test wallet with
+  `node apps/api/scripts/mint-test-currency.cjs <wallet> <amount>` — no
+  external faucet needed.
+- `VAULT_PROVIDER` — `mock` for devnet testing (no Kamino reserve exists on
+  devnet — Kamino's Scope oracle isn't deployed there). `kamino` requires
+  mainnet or Kamino's staging environment and is out of scope for devnet
+  deploys.
 - Sponsor funded (see section 3).
 - `CORS_ORIGIN` set to the web origin (unset = reflect any origin, dev only).
 
