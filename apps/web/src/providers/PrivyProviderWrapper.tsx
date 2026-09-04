@@ -1,6 +1,7 @@
 'use client';
 
 import { PrivyProvider } from '@privy-io/react-auth';
+import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
 
 const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
@@ -38,6 +39,21 @@ export function PrivyProviderWrapper({ children }: { children: React.ReactNode }
         embeddedWallets: {
           ethereum: { createOnLogin: 'off' },
           solana: { createOnLogin: 'users-without-wallets' },
+        },
+        // Sem plugin de RPCs default ativo, o Privy não resolve RPC pra
+        // nenhuma chain sozinho — signTransaction/signAndSendTransaction
+        // estouram "No RPC configuration found" mesmo passando `chain`
+        // explícito. Só devnet: é o único cluster que este app usa (ver
+        // apps/api/.env SOLANA_CLUSTER).
+        solana: {
+          rpcs: {
+            'solana:devnet': {
+              rpc: createSolanaRpc('https://api.devnet.solana.com'),
+              rpcSubscriptions: createSolanaRpcSubscriptions(
+                'wss://api.devnet.solana.com',
+              ),
+            },
+          },
         },
       }}
     >
