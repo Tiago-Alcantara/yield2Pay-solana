@@ -10,8 +10,9 @@ import { WalletService } from '../wallet/wallet.service';
 import { parseBaseUnits } from '../common/parse-money';
 import type { BuildTxResponse, SubmitTxDto } from '@yield2pay/shared';
 
-// MVP mainnet: teto conservador até o produto amadurecer (100 USDC).
-const MAX_DEPOSIT_BASE_UNITS = 100_000_000n;
+// MVP mainnet: teto conservador até o produto amadurecer (2.000 USDC).
+// Front mostra esse mesmo valor em UsdcDepositCard.tsx — mudou aqui, muda lá.
+const MAX_DEPOSIT_BASE_UNITS = 2_000_000_000n;
 
 @Injectable()
 export class DepositService {

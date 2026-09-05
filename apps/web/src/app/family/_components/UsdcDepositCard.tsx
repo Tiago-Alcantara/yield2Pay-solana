@@ -14,6 +14,9 @@ import { fmtUsdc, numericOnly, parseUsdc, toBaseUnitsString } from '../_lib/fami
 import { useFamily } from '../_lib/FamilyProvider';
 import { useSolanaTx } from '@/lib/useSolanaTx';
 import { useWallet } from '@/lib/useWallet';
+import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
+import { dismissErrorNotification } from '@/lib/errorNotifications';
 
 type Phase = 'idle' | 'running' | 'done' | 'error';
 
@@ -31,6 +34,7 @@ export function UsdcDepositCard({
   const { deposit } = useSolanaTx();
   const [amount, setAmount] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
+  const [errorMessage, setErrorMessage] = useState(t.onboarding.usdcErrorSub);
 
   const parsed = parseUsdc(amount);
 
@@ -41,7 +45,21 @@ export function UsdcDepositCard({
       const txSignature = await deposit(toBaseUnitsString(parsed));
       setPhase('done');
       onDone(txSignature);
-    } catch {
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        // Validação de negócio (valor digitado, não falha técnica): a API já
+        // manda uma mensagem segura para o usuário — mostra ela aqui perto do
+        // campo em vez do popup global de erro, que é para falha inesperada.
+        dismissErrorNotification();
+        const raw = getErrorMessage(err);
+        setErrorMessage(
+          raw === 'amount exceeds maximum deposit'
+            ? t.onboarding.usdcAmountTooHigh
+            : t.onboarding.usdcErrorSub,
+        );
+      } else {
+        setErrorMessage(t.onboarding.usdcErrorSub);
+      }
       setPhase('error');
     }
   }
@@ -142,7 +160,7 @@ export function UsdcDepositCard({
 
       {phase === 'error' && (
         <div role="alert" style={{ fontSize: 12.5, color: C.danger, marginTop: 10 }}>
-          {t.onboarding.usdcErrorSub}
+          {errorMessage}
         </div>
       )}
 
