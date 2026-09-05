@@ -176,6 +176,27 @@
   }
 }
 
+/* ── Sidebar do dashboard ─────────────────────────────────────────────────── */
+
+.fam-navitem:hover {
+  background: rgba(255, 255, 255, .04) !important;
+}
+@media (max-width: 900px) {
+  .fam-sidebar {
+    display: none !important;
+  }
+}
+
+/* ── Painel de metal do dashboard: brilho e textura mais discretos ────────── */
+
+.fam-dash-top .sweep {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .09), transparent);
+  animation-duration: 11s;
+}
+.fam-dash-top .brushed::after {
+  opacity: .25;
+}
+
 /* ── Card com elevação no hover (seção "Como funciona") ───────────────────── */
 
 .fam-card-hover {

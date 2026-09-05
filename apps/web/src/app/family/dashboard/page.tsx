@@ -10,7 +10,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { C, PANEL_SHADOW_LG, cardLabel } from '../_lib/familyTheme';
+import { C, PANEL_SHADOW, cardLabel } from '../_lib/familyTheme';
 import { useFamily } from '../_lib/FamilyProvider';
 import { fmtUsdc, fmtUsdcShort, numericOnly, parseUsdc } from '../_lib/familyFormat';
 import { useFamilyData } from '../_lib/useFamilyData';
@@ -30,6 +30,7 @@ import {
   SubDot,
 } from '../_components/FamilyUI';
 import { DashboardHeader } from '../_components/DashboardHeader';
+import { DashboardSidebar } from '../_components/DashboardSidebar';
 
 export default function FamilyDashboardPage() {
   const router = useRouter();
@@ -102,19 +103,23 @@ export default function FamilyDashboardPage() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bgRadialTall }}>
-      <DashboardHeader />
+    <div style={{ display: 'flex', minHeight: '100vh', background: C.bgRadialTall }}>
+      <DashboardSidebar />
 
-      <main
-        style={{
-          maxWidth: 960,
-          margin: '0 auto',
-          padding: '24px var(--fam-gutter) 72px',
-        }}
-      >
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <DashboardHeader />
+
+        <main
+          style={{
+            maxWidth: 960,
+            margin: '0 auto',
+            width: '100%',
+            padding: '24px var(--fam-gutter) 72px',
+          }}
+        >
         {/* ── Percentual de liberdade + saldos ──────────────────────────── */}
         <div className="fam-dash-top">
-          <MetalPanel radius={22} padding="var(--fam-panel-pad)" shadow={PANEL_SHADOW_LG}>
+          <MetalPanel radius={22} padding="var(--fam-panel-pad)" shadow={PANEL_SHADOW}>
             <div style={{ ...cardLabel, letterSpacing: '.16em', color: C.text2 }}>
               {t.dash.freedomLabel}
             </div>
@@ -137,6 +142,13 @@ export default function FamilyDashboardPage() {
             </div>
             <div style={{ marginTop: 20 }}>
               <CoverageBar percent={view.pct} />
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14, fontSize: 12.5 }}>
+              <span style={{ color: C.text3 }}>{t.dash.legendCommitted}</span>
+              <span style={{ fontFamily: C.mono, color: C.text2 }}>{fmtUsdc(view.paid)}</span>
+              <span style={{ color: C.text4, margin: '0 2px' }}>/</span>
+              <span style={{ color: C.text3 }}>{t.dash.legendTotal.toLowerCase()}</span>
+              <span style={{ fontFamily: C.mono, color: C.text2 }}>{fmtUsdc(view.yieldPerMonth)}</span>
             </div>
             <div
               style={{
@@ -453,7 +465,38 @@ export default function FamilyDashboardPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', marginTop: 14 }}>
             {view.rows.length === 0 && (
-              <div style={{ fontSize: 14, color: C.text2, padding: '16px 4px' }}>{t.dash.empty}</div>
+              <div style={{ padding: '16px 4px' }}>
+                <div style={{ fontSize: 14, color: C.text2 }}>{t.dash.empty}</div>
+                <div style={{ fontSize: 12.5, color: C.text3, marginTop: 14 }}>
+                  {t.dash.emptySuggestionsLabel}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                  {t.dash.emptySuggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="fam-outline"
+                      onClick={() => {
+                        setNewName(s.name);
+                        setNewPrice(s.price.toFixed(2).replace('.', ','));
+                        setAdding(true);
+                      }}
+                      style={{
+                        fontFamily: 'inherit',
+                        fontSize: 13,
+                        color: C.text2,
+                        background: C.well,
+                        border: `1px solid ${C.border}`,
+                        borderRadius: 999,
+                        padding: '8px 14px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {s.name} · {fmtUsdcShort(s.price)}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
             {view.rows.map((row) => (
               <button
@@ -507,7 +550,8 @@ export default function FamilyDashboardPage() {
             {t.dash.subsFooter}
           </div>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
