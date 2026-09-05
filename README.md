@@ -23,13 +23,6 @@ O principal continua **100% seu** — e sai quando você quiser.
 
 </div>
 
-> [!NOTE]
-> **Este repo é o Yield2Pay na Solana.** Fork da base original (Stellar/Soroban, com a vertical
-> B2B e a rampa Etherfuse) migrado para **Solana** com um único produto: a **vertical famílias**.
-> O motor on-chain foi reescrito — o que era `stellar/` + fee-bump agora é `solana/` + fee payer
-> patrocinado; o cofre DeFindex dá lugar ao **Kamino Lend**; a rampa PIX saiu do MVP e voltou para
-> o [roadmap](#-roadmap). O repo Stellar original segue em `FixEarn`.
-
 ---
 
 ## 💡 A ideia em 30 segundos
@@ -441,7 +434,7 @@ injeta rendimento sintético quando necessário. Não há rampa fiat — o aport
 |:---:|---|---|
 | ⛽ | Fee payer patrocinado + ATA idempotente + guarda no submit | ✅ **codado, devnet** |
 | 📊 | Ledger: principal, spendable, snapshot diário, modo demo | ✅ **codado** |
-| 🏧 | **Rampa fiat BRL ⇄ USDC** (o fork Stellar usava Etherfuse/PIX; voltar a ter rampa) | 📋 planejado |
+| 🏧 | **Rampa fiat BRL ⇄ USDC** (hoje o aporte é só direto em USDC) | 📋 planejado |
 | ⚙️ | Motor de cobrança automatizado (resgatar só o yield no vencimento → pagar a assinatura) | 📋 planejado |
 | 📜 | Escrow próprio (programa Anchor) com split de receita | 📋 planejado |
 | 🚀 | Devnet → mainnet-beta (RPC próprio, cofre financiado, limites revisados) | 📋 planejado |
@@ -563,9 +556,6 @@ agrupado por frente.
 ---
 
 <div align="center">
-
-<sub>Yield2Pay nasceu como **FixEarn**, passou a Yield2Pay e este repo é o fork
-**Solana** dedicado à vertical famílias.</sub>
 
 <sub>Ferramenta de pagamento não-custodial. Não somos instituição financeira e não administramos
 recursos de terceiros. O rendimento é variável e pode ser zero. Os valores nesta página são
