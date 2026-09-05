@@ -172,6 +172,14 @@ const pt = {
     menuLogout: 'Sair',
     menuAll: 'Ver todas as configurações ›',
 
+    navOverview: 'Visão geral',
+    navDeposit: 'Meu aporte',
+    navSettings: 'Configurações',
+    profileTag: 'Família',
+
+    legendCommitted: 'Pago pelo rendimento',
+    legendTotal: 'Rendimento mensal total',
+
     freedomLabel: 'Percentual de liberdade',
     freedomFull: 'Todas as assinaturas da casa se pagam sozinhas neste cenário.',
     freedomPartial: 'das contas da casa já se pagam com o rendimento do seu depósito.',
@@ -215,6 +223,14 @@ const pt = {
     statusCovered: 'coberta',
     statusNotYet: 'ainda não',
     empty: 'Nenhuma assinatura na lista ainda. Adicione a primeira acima.',
+    emptySuggestionsLabel: 'Sugestões — não são suas contas, é só pra começar:',
+    emptySuggestions: [
+      { id: 'netflix', name: 'Netflix', price: 55.9 },
+      { id: 'internet', name: 'Internet', price: 99.9 },
+      { id: 'luz', name: 'Conta de luz', price: 180 },
+      { id: 'amazon', name: 'Amazon Prime', price: 14.9 },
+      { id: 'claude', name: 'Claude', price: 100 },
+    ],
   },
 
   detail: {
@@ -582,6 +598,14 @@ const en: FamilyDict = {
     menuLogout: 'Sign out',
     menuAll: 'See all settings ›',
 
+    navOverview: 'Overview',
+    navDeposit: 'My deposit',
+    navSettings: 'Settings',
+    profileTag: 'Family',
+
+    legendCommitted: 'Paid by the yield',
+    legendTotal: 'Total monthly yield',
+
     freedomLabel: 'Freedom percentage',
     freedomFull: 'Every household subscription pays for itself in this scenario.',
     freedomPartial: 'of the household bills already pay for themselves with the yield on your deposit.',
@@ -624,6 +648,14 @@ const en: FamilyDict = {
     statusCovered: 'covered',
     statusNotYet: 'not yet',
     empty: 'No subscriptions on the list yet. Add the first one above.',
+    emptySuggestionsLabel: "Suggestions — not your actual bills, just to get you started:",
+    emptySuggestions: [
+      { id: 'netflix', name: 'Netflix', price: 55.9 },
+      { id: 'internet', name: 'Internet', price: 99.9 },
+      { id: 'luz', name: 'Electricity bill', price: 180 },
+      { id: 'amazon', name: 'Amazon Prime', price: 14.9 },
+      { id: 'claude', name: 'Claude', price: 100 },
+    ],
   },
 
   detail: {
