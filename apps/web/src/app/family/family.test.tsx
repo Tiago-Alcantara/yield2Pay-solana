@@ -114,7 +114,6 @@ describe('landing /family', () => {
   it('leva ao login pelos CTAs de entrada', () => {
     renderInFamily(<FamilyLandingPage />);
     // Nav, hero, calculadora e seção final — CTAs apontam para /login.
-    // Os textos variam ("Entrar na lista", "Quero entrar na lista", etc.)
     const loginLinks = screen.getAllByRole('link', { name: /entrar/i });
     expect(loginLinks.length).toBeGreaterThanOrEqual(4);
     for (const link of loginLinks) {
