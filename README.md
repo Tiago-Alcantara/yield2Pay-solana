@@ -501,24 +501,6 @@ Configure `apps/api/.env` e `apps/web/.env.local` a partir dos respectivos `*.ex
 
 ---
 
-## ✅ Próximos passos
-
-Checklist específico **desta submissão** — não confundir com o [roadmap técnico](#-roadmap) do
-produto acima, que é sobre onde o produto vai, não sobre fechar esta entrega:
-
-- [ ] **Organizar o repositório** — revisar estrutura de pastas, remover código morto/experimentos
-      que não vão pra entrega.
-- [ ] **Testar a instalação do zero** em máquina limpa (`git clone` → `pnpm install` →
-      `pnpm dev:app`).
-- [ ] **Deixar o repositório público** — hoje ele está **privado** no GitHub.
-- [ ] **Testar o link do repositório em aba anônima** (só dá pra confirmar depois de público).
-- [ ] **Colar o link final** na tarefa de entrega.
-
-> Visão geral, instruções de instalação e explicação técnica de como a infraestrutura Solana é
-> usada — os três itens exigidos no README pela entrega — já estão cobertos nas seções acima.
-
----
-
 ## 📚 Documentação
 
 **Produto**
