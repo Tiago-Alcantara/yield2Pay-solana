@@ -15,7 +15,7 @@ const pt = {
   landing: {
     navCalc: 'Calculadora',
     navHow: 'Como funciona',
-    navCta: 'Entrar na lista',
+    navCta: 'Entrar',
     enterApp: 'Já tenho conta — entrar ›',
     loginCta: 'Entrar',
 
@@ -23,7 +23,7 @@ const pt = {
     heroTitle: 'O rendimento do seu próprio dinheiro paga suas assinaturas.',
     heroSub:
       'Você deposita uma quantia, ela continua sua, e o que ela rende cobre a Netflix, o Spotify, a escola de inglês. O principal fica parado, esperando o dia em que você quiser de volta.',
-    heroCta1: 'Quero entrar na lista',
+    heroCta1: 'Entrar',
     heroCta2: 'Fazer as contas',
     heroSeals: ['Não-custodial', 'Saque quando quiser', 'Sem mensalidade'],
     heroCardLabel: 'Este mês',
@@ -50,7 +50,7 @@ const pt = {
     rowMonthly: 'Suas assinaturas',
     rowCovered: 'Coberto no cenário',
     rowNeeded: 'Depósito para chegar a 100%',
-    calcCta: 'Entrar na lista de espera',
+    calcCta: 'Entrar',
     calcNote: 'Simulação com cenário escolhido por você. Não é promessa de resultado.',
 
     howEyebrow: 'Como funciona',
@@ -93,9 +93,8 @@ const pt = {
       },
     ],
 
-    ctaTitle: 'Comece pela lista de espera',
-    ctaSub:
-      'Avisamos você quando a sua vaga abrir. Sem cobrança, sem compromisso, e o seu e-mail não vai para lugar nenhum.',
+    ctaTitle: 'Entre para começar',
+    ctaSub: 'Leva menos de um minuto. Sem cobrança, sem compromisso.',
     emailLabel: 'Seu e-mail',
     emailPlaceholder: 'voce@email.com',
     emailError: 'Digite um e-mail válido para a gente avisar você.',
@@ -443,7 +442,7 @@ const en: FamilyDict = {
   landing: {
     navCalc: 'Calculator',
     navHow: 'How it works',
-    navCta: 'Join the list',
+    navCta: 'Log in',
     enterApp: 'I already have an account — sign in ›',
     loginCta: 'Log in',
 
@@ -451,7 +450,7 @@ const en: FamilyDict = {
     heroTitle: 'The yield on your own money pays your subscriptions.',
     heroSub:
       'You put in an amount once. It stays yours, and what it earns covers Netflix, Spotify, the kids’ language classes. The principal sits untouched, waiting for the day you want it back.',
-    heroCta1: 'Join the waitlist',
+    heroCta1: 'Log in',
     heroCta2: 'Run the numbers',
     heroSeals: ['Non-custodial', 'Withdraw anytime', 'No monthly fee'],
     heroCardLabel: 'This month',
@@ -477,7 +476,7 @@ const en: FamilyDict = {
     rowMonthly: 'Your subscriptions',
     rowCovered: 'Covered in this scenario',
     rowNeeded: 'Deposit to reach 100%',
-    calcCta: 'Join the waitlist',
+    calcCta: 'Log in',
     calcNote: 'A simulation using a scenario you pick. Not a promise of results.',
 
     howEyebrow: 'How it works',
@@ -520,9 +519,8 @@ const en: FamilyDict = {
       },
     ],
 
-    ctaTitle: 'Start with the waitlist',
-    ctaSub:
-      'We’ll let you know when your spot opens. No charge, no commitment, and your email goes nowhere else.',
+    ctaTitle: 'Log in to get started',
+    ctaSub: 'Takes less than a minute. No charge, no commitment.',
     emailLabel: 'Your email',
     emailPlaceholder: 'you@email.com',
     emailError: 'Enter a valid email so we can reach you.',
