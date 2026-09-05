@@ -501,6 +501,23 @@ Configure `apps/api/.env` and `apps/web/.env.local` from their respective `*.exa
 
 ---
 
+## ✅ Next steps
+
+Checklist specific to **this submission** — don't confuse it with the [technical roadmap](#-roadmap)
+above, which is about where the product is going, not about closing this submission out:
+
+- [ ] **Organize the repository** — review folder structure, remove dead code/experiments that
+      shouldn't ship in the submission.
+- [ ] **Test a clean install** on a fresh machine (`git clone` → `pnpm install` → `pnpm dev:app`).
+- [ ] **Make the repository public** — it's currently **private** on GitHub.
+- [ ] **Test the repository link in an incognito tab** (only confirmable once it's public).
+- [ ] **Paste the final link** into the submission task.
+
+> The overview, install instructions and technical explanation of how the Solana infrastructure
+> is used — the three things the submission requires in the README — are already covered above.
+
+---
+
 ## 📚 Documentation
 
 Most documents are written in Portuguese.
