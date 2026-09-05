@@ -501,6 +501,47 @@ Configure `apps/api/.env` and `apps/web/.env.local` from their respective `*.exa
 
 ---
 
+## 🚀 Path to mainnet
+
+What's actually left before this product leaves devnet and runs with real money. Some of these
+already show up loose in the [roadmap](#-roadmap) above — here's the concrete path, grouped by
+area.
+
+**Infra and configuration**
+- [ ] Switch `SOLANA_CLUSTER`/`SOLANA_RPC_URL` to `mainnet-beta`, with a paid RPC (Helius, Triton,
+      etc. — the public one can't handle production).
+- [ ] Switch `VAULT_PROVIDER=mock` to `kamino` — on mainnet the Scope oracle exists, so
+      `KaminoVaultService` (already coded, already uses the real SDK) starts working for real.
+- [ ] Point `KAMINO_MARKET_ADDRESS`/`KAMINO_RESERVE_ADDRESS` at a real Kamino USDC market/reserve.
+- [ ] Switch `USDC_MINT` from the test mint to real USDC
+      (`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`).
+- [ ] Fund the treasury (`FEE_SPONSOR_SECRET_KEY`) with real SOL and set up balance monitoring.
+- [ ] Pin `CORS_ORIGIN` to the real production domain — today, without that env var, the backend
+      accepts any origin.
+- [ ] Real production secrets on Render/Vercel (`PRIVY_*`, `KAMINO_*`) — see `docs/DEPLOY.md`.
+- [ ] Revisit `MAX_DEPOSIT_BASE_UNITS` (2,000 USDC today, an MVP cap) for the real production
+      limit.
+
+**Product**
+- [ ] **PIX ⇄ USDC ramp** — today deposits are USDC-only; real households will want to move money
+      in and out in reais.
+- [ ] Automated billing engine — redeem only the yield on each subscription's due date and pay it
+      automatically, no manual action.
+- [ ] Persist the freedom percentage as a server-side metric (today it's computed client-side,
+      from real API data).
+- [ ] Dependents who log in — migrate `Member` from a name record to a real account.
+- [ ] Custom escrow (Anchor program) with revenue split, if the business model needs to keep a
+      cut of the yield.
+
+**Before opening to real users**
+- [ ] Full E2E against real Kamino — only testable on mainnet or Kamino's staging environment;
+      devnet has no oracle.
+- [ ] Spec coverage for `household`, `wallet`, `solana`, `deposit`, `subs`, `ledger` (today only
+      `common/`, `config/` and `vault/` have any).
+- [ ] Rotation plan and secure custody for the treasury key — today it's a plain env var.
+
+---
+
 ## 📚 Documentation
 
 Most documents are written in Portuguese.

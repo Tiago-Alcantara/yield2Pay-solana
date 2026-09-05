@@ -501,6 +501,49 @@ Configure `apps/api/.env` e `apps/web/.env.local` a partir dos respectivos `*.ex
 
 ---
 
+## 🚀 Caminho para mainnet
+
+O que falta, de fato, pra este produto sair da devnet e rodar com dinheiro de verdade. Alguns
+destes itens já aparecem soltos no [roadmap](#-roadmap) acima — aqui é o caminho concreto,
+agrupado por frente.
+
+**Infra e configuração**
+- [ ] Trocar `SOLANA_CLUSTER`/`SOLANA_RPC_URL` para `mainnet-beta`, com um RPC pago (Helius,
+      Triton etc. — o público não aguenta produção).
+- [ ] Trocar `VAULT_PROVIDER=mock` por `kamino` — em mainnet o oracle Scope existe, então
+      `KaminoVaultService` (já codado, já usa o SDK real) passa a funcionar de verdade.
+- [ ] Apontar `KAMINO_MARKET_ADDRESS`/`KAMINO_RESERVE_ADDRESS` para um market/reserve de USDC
+      real da Kamino.
+- [ ] Trocar `USDC_MINT` do mint de teste pelo USDC real
+      (`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`).
+- [ ] Financiar a tesouraria (`FEE_SPONSOR_SECRET_KEY`) com SOL de verdade e montar monitoramento
+      de saldo.
+- [ ] Travar `CORS_ORIGIN` no domínio real de produção — hoje, sem essa env, o backend aceita
+      qualquer origem.
+- [ ] Segredos de produção reais no Render/Vercel (`PRIVY_*`, `KAMINO_*`) — ver `docs/DEPLOY.md`.
+- [ ] Revisar `MAX_DEPOSIT_BASE_UNITS` (hoje 2.000 USDC, teto de MVP) para o valor real de
+      produção.
+
+**Produto**
+- [ ] **Rampa PIX ⇄ USDC** — hoje o aporte é só USDC direto; família de verdade vai querer entrar
+      e sair em reais.
+- [ ] Motor de cobrança automatizado — resgatar só o yield no vencimento de cada assinatura e
+      pagar sozinho, sem ação manual.
+- [ ] Persistir o Percentual de Liberdade como métrica no backend (hoje é calculado no cliente,
+      a partir de dado real da API).
+- [ ] Dependentes que logam — migrar `Member` de registro de nome para conta de verdade.
+- [ ] Escrow próprio (programa Anchor) com split de receita, se o modelo de negócio precisar
+      reter parte do yield.
+
+**Antes de abrir para usuários reais**
+- [ ] E2E completo contra a Kamino real — só dá pra testar em mainnet ou no ambiente de staging
+      da Kamino, devnet não tem o oracle.
+- [ ] Cobertura de specs em `household`, `wallet`, `solana`, `deposit`, `subs`, `ledger` (hoje só
+      `common/`, `config/` e `vault/` têm).
+- [ ] Plano de rotação e custódia segura da chave da tesouraria — hoje é uma env var simples.
+
+---
+
 ## 📚 Documentação
 
 **Produto**
