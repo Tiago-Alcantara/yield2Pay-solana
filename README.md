@@ -10,7 +10,7 @@ O principal continua **100% seu** — e sai quando você quiser.
 
 <br/>
 
-![Status](https://img.shields.io/badge/status-backend_devnet_%2B_prot%C3%B3tipo_fam%C3%ADlias-2ea44f?style=for-the-badge&labelColor=0c0d0f)
+![Status](https://img.shields.io/badge/status-vertical_fam%C3%ADlias_plugada_%C2%B7_devnet-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 ![Custódia](https://img.shields.io/badge/100%25-n%C3%A3o--custodial-C0C2C5?style=for-the-badge&labelColor=0c0d0f)
 ![Rede](https://img.shields.io/badge/Solana-devnet-9945FF?style=for-the-badge&logo=solana&labelColor=0c0d0f)
 ![Moeda](https://img.shields.io/badge/moeda-Real_(mock_em_devnet)-2ea44f?style=for-the-badge&labelColor=0c0d0f)
@@ -121,9 +121,9 @@ Oito rotas, bilíngues (PT/EN), **responsivas no mobile** (escala centralizada e
 
 | Rota | O que faz |
 |---|---|
-| [`/family`](apps/web/src/app/family/page.tsx) | Landing: hero, **calculadora de liberdade**, como funciona, o que está por trás, lista de espera |
+| [`/family`](apps/web/src/app/family/page.tsx) | Landing: hero, **calculadora de liberdade**, como funciona, o que está por trás, CTA de login |
 | [`/family/onboarding`](apps/web/src/app/family/onboarding/) | Abertura de conta e carteira |
-| [`/family/deposito`](apps/web/src/app/family/deposito/) | Depósito (`PixDepositCard`) |
+| [`/family/deposito`](apps/web/src/app/family/deposito/) | Depósito em USDC (`UsdcDepositCard`) |
 | [`/family/dashboard`](apps/web/src/app/family/dashboard/) | Percentual de Liberdade, saldo, assinaturas, histórico |
 | [`/family/dashboard/[subId]`](apps/web/src/app/family/dashboard/) | Detalhe de uma assinatura |
 | [`/family/saque`](apps/web/src/app/family/saque/) | Saque do principal |
@@ -131,11 +131,16 @@ Oito rotas, bilíngues (PT/EN), **responsivas no mobile** (escala centralizada e
 | [`/family/configuracoes`](apps/web/src/app/family/configuracoes/) | Perfil, segurança, carteira, assinaturas, notificações, privacidade (LGPD) |
 
 > [!IMPORTANT]
-> **O que ainda NÃO está ligado.** Estas telas são **front puro**. Os números são calculados no
-> cliente, **sem Privy, cofre ou API por trás** nesta vertical, e a lista de espera só valida o
-> e-mail e mostra o estado "enviado" — não persiste em lugar nenhum. O backend real (auth,
-> household, wallet, deposit, withdraw, subs, ledger) **já roda na devnet**; falta **plugar as
-> telas famílias nele** — ver o [roadmap](#-roadmap).
+> **O que já está ligado, e o que ainda é mock.** As telas autenticadas (`/family/dashboard`,
+> `/family/deposito`, `/family/saque`, e a aba **Assinaturas** de `/family/configuracoes`) já
+> rodam contra o **backend real na devnet**: login Privy de verdade, carteira Solana embutida
+> criada e registrada no backend, depósito/saque como transação patrocinada assinada pelo
+> cliente, e a lista de assinaturas via API/Postgres. Não sobrou nada de front-puro nesse
+> caminho. O que **ainda é mock**, de propósito, por não ser core do fluxo financeiro: as demais
+> abas de Configurações (perfil, segurança, notificações, privacidade) guardam estado só no
+> `localStorage` do navegador (`familyStore.ts`), e o extrato de movimentações em "Carteira" é
+> um exemplo fixo. A calculadora da landing (`/family`) é simulação client-side por natureza —
+> ilustra o produto antes do login, não é dado de ninguém.
 
 > [!WARNING]
 > **Kamino não roda em devnet.** O oracle que toda reserve Kamino Lend exige
@@ -168,10 +173,12 @@ apps/web/src/app/family/
 └── _components/
     ├── FamilyUI.tsx         → primitivas visuais da vertical
     ├── DashboardHeader.tsx
-    └── PixDepositCard.tsx
+    ├── DashboardSidebar.tsx → nav lateral fixa do dashboard
+    └── UsdcDepositCard.tsx  → aporte direto em USDC (onboarding e painel)
 ```
 
-Testes: `familyMath.test.ts`, `familyFormat.test.ts`, `family.test.tsx`.
+Testes: `familyMath.test.ts`, `familyFormat.test.ts`, `family.test.tsx`, `useFamilyData.test.tsx`,
+`UsdcDepositCard.test.tsx`.
 
 </details>
 
@@ -222,7 +229,7 @@ Monorepo **pnpm workspaces** (`pnpm@10.33.2`): dois apps e um pacote de tipos co
 ```mermaid
 flowchart LR
     subgraph web["apps/web · Next.js 16"]
-        FAM("<b>/family</b><br/>vertical famílias<br/><i>protótipo</i>")
+        FAM("<b>/family</b><br/>vertical famílias<br/><i>plugada no backend</i>")
         LOGIN("<b>/login</b><br/>Privy + AuthGate")
     end
 
@@ -237,7 +244,7 @@ flowchart LR
     PG("🗄️ Postgres 16<br/>Prisma")
     SOL("⛓️ Solana · devnet<br/>USDC · Kamino Lend")
 
-    FAM -.->|"a ligar"| T
+    FAM --> T
     LOGIN --> T
     T --> AUTH
     T --> FLOW
@@ -337,7 +344,7 @@ apps/web/src/
 ├── app/
 │   ├── page.tsx      → landing pública (bilíngue EN/PT)
 │   ├── login/        → Google OAuth via Privy
-│   ├── family/       → vertical famílias (protótipo)
+│   ├── family/       → vertical famílias, plugada no backend real
 │   ├── tokens/       → design tokens em CSS custom properties (--fx-*)
 │   ├── error.tsx · global-error.tsx · not-found.tsx → rotas de erro
 │   └── favicon.ico
@@ -410,21 +417,22 @@ frontend, Vitest + Testing Library cobrindo a API client, hooks (`useWallet`), p
 **Onde estamos:** o backend da vertical famílias roda na **devnet Solana** — auth Privy com
 household criada no primeiro login, registro de carteira com **ATA de USDC patrocinada**,
 transações patrocinadas (fee payer) com guarda contra fee payer estranho, ledger com principal /
-spendable / snapshot diário às 2h, CRUD + reordenação de assinaturas e **modo demo**
-(`DEMO_YIELD_BPS`) que injeta rendimento sintético para a UI antes do cofre render de verdade.
-O **cofre Kamino Lend está especificado, não ligado** — `vault/` tem o contrato completo, falta
-plugar a SDK (`@kamino-finance/klend-sdk`). As telas `/family` seguem **protótipo de frontend**.
-Não há rampa fiat — o aporte é direto em USDC.
+spendable / snapshot diário às 2h, CRUD + reordenação de assinaturas — e as telas de `/family`
+(dashboard, depósito, saque, assinaturas) **já plugadas nesse backend de ponta a ponta**. O
+**cofre Kamino Lend já usa o SDK real** (`@kamino-finance/klend-sdk`) em `vault/`, mas não roda em
+devnet por falta do oracle Scope nesse cluster (ver aviso acima); por isso a devnet usa um cofre
+mock (`VAULT_PROVIDER=mock`) com moeda de teste própria, e o **modo demo** (`DEMO_YIELD_BPS`)
+injeta rendimento sintético quando necessário. Não há rampa fiat — o aporte é direto em USDC.
 
 ### Vertical famílias
 
 | | Item | Status |
 |:---:|---|---|
-| 🎨 | Telas `/family` — 8 rotas, PT/EN, responsivas, fluxos completos | ✅ **protótipo navegável** |
-| 🏦 | Ligar a SDK Kamino em `vault/` (deposit/withdraw/APY/posição já especificados) | 🚧 **próximo** |
-| 🔌 | Plugar `/family` no backend (auth · wallet · deposit · withdraw · subs · ledger) | 🚧 **próximo** |
-| 💾 | Persistir o Percentual de Liberdade no backend (hoje só no cliente) | 📋 planejado |
-| ✉️ | Integrar a lista de espera (hoje só valida e mostra "enviado") | 📋 planejado |
+| 🎨 | Telas `/family` — 8 rotas, PT/EN, responsivas, fluxos completos | ✅ **plugadas, devnet** |
+| 🔌 | Backend real por trás (auth · wallet · deposit · withdraw · subs · ledger) | ✅ **codado, devnet** |
+| 🏦 | Cofre Kamino Lend com SDK real em `vault/` | ✅ **codado** · 🚧 precisa mainnet (sem oracle Scope em devnet) |
+| 💾 | Persistir o Percentual de Liberdade como métrica no backend (hoje calculado no cliente, a partir de dado real da API) | 📋 planejado |
+| 🧩 | Tirar do mock as demais abas de Configurações (perfil, segurança, notificações, privacidade — hoje só `localStorage`) | 📋 planejado |
 | 👤 | Dependentes que logam (migração de `Member` para conta de verdade) | 📋 planejado |
 
 ### On-chain e dinheiro
@@ -442,10 +450,11 @@ Não há rampa fiat — o aporte é direto em USDC.
 <summary><b>Testar e revisar</b></summary>
 
 **Testar**
-- [ ] E2E do aporte na devnet (`build → cliente assina → submit → assert posição`) — depende da
-      SDK Kamino ligada e de USDC devnet (faucet).
-- [ ] Cobertura de specs dos serviços novos (`household`, `wallet`, `solana`, `deposit`,
-      `subs`, `ledger`) — hoje só `common/` tem specs no backend.
+- [x] E2E do aporte/saque na devnet (`build → cliente assina → submit → assert posição`) já roda
+      hoje contra o **cofre mock** — falta o mesmo E2E contra a Kamino real, só possível em
+      mainnet ou no ambiente de staging da Kamino.
+- [ ] Cobertura de specs de `household`, `wallet`, `solana`, `deposit`, `subs` e `ledger` — hoje
+      só `common/`, `config/` e `vault/` têm specs no backend.
 - [ ] Verificação visual por tela contra o `design/`.
 
 **Revisar**
@@ -453,7 +462,8 @@ Não há rampa fiat — o aporte é direto em USDC.
       Vercel antes de produção.
 - [ ] **Segredos de produção** no Render/Vercel: `PRIVY_*`, `KAMINO_*`, `FEE_SPONSOR_SECRET_KEY`,
       `CORS_ORIGIN` (ver `docs/DEPLOY.md`).
-- [ ] **Teto de aporte:** `MAX_DEPOSIT_BASE_UNITS` hoje é 10.000 USDC — revisar ao sair da devnet.
+- [ ] **Teto de aporte:** `MAX_DEPOSIT_BASE_UNITS` hoje é 2.000 USDC — ainda conservador de
+      propósito, revisar ao sair da devnet.
 - [ ] **Chave da tesouraria:** `FEE_SPONSOR_SECRET_KEY` financia todo o gas — monitorar saldo.
 
 </details>
@@ -480,11 +490,14 @@ pnpm web:test         # só o frontend
 Configure `apps/api/.env` e `apps/web/.env.local` a partir dos respectivos `*.example`.
 
 > [!TIP]
-> A vertical **`/family` roda sem credencial nenhuma** — é front puro. Basta `pnpm dev:web` e abrir
-> `http://localhost:3000/family`. As telas autenticadas (`/login`) precisam de um
-> `NEXT_PUBLIC_PRIVY_APP_ID` real. Para o fluxo completo na devnet: gere uma chave com
-> `solana-keygen new` (formato id.json) para `FEE_SPONSOR_SECRET_KEY`, airdrop de SOL para ela e
-> pegue USDC devnet no faucet.
+> A **landing pública** (`/family`) roda sem credencial nenhuma — basta `pnpm dev:web` e abrir
+> `http://localhost:3000/family`. Já as telas autenticadas (dashboard, depósito, saque,
+> configurações, `/login`) precisam de um `NEXT_PUBLIC_PRIVY_APP_ID` real e do backend rodando.
+> Para o fluxo completo na devnet: gere uma chave com `solana-keygen new` (formato id.json) para
+> `FEE_SPONSOR_SECRET_KEY`, airdrop de SOL para ela e rode
+> `node apps/api/scripts/create-mock-devnet-mints.cjs` uma vez para criar os mints de teste — depois
+> `node apps/api/scripts/mint-test-currency.cjs <carteira> <valor>` para dar saldo de teste a uma
+> carteira (não existe faucet de USDC real para devnet).
 
 ---
 
