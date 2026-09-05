@@ -10,7 +10,7 @@ The principal stays **100% yours** — withdraw it whenever you want.
 
 <br/>
 
-![Status](https://img.shields.io/badge/status-backend_devnet_%2B_families_prototype-2ea44f?style=for-the-badge&labelColor=0c0d0f)
+![Status](https://img.shields.io/badge/status-families_vertical_wired_%C2%B7_devnet-2ea44f?style=for-the-badge&labelColor=0c0d0f)
 ![Custody](https://img.shields.io/badge/100%25-non--custodial-C0C2C5?style=for-the-badge&labelColor=0c0d0f)
 ![Network](https://img.shields.io/badge/Solana-devnet-9945FF?style=for-the-badge&logo=solana&labelColor=0c0d0f)
 ![Currency](https://img.shields.io/badge/currency-Real_(mock_on_devnet)-2ea44f?style=for-the-badge&labelColor=0c0d0f)
@@ -119,9 +119,9 @@ variables, single breakpoint at 640px) and walkable end to end in
 
 | Route | What it does |
 |---|---|
-| [`/family`](apps/web/src/app/family/page.tsx) | Landing: hero, **freedom calculator**, how it works, what's behind it, waitlist |
+| [`/family`](apps/web/src/app/family/page.tsx) | Landing: hero, **freedom calculator**, how it works, what's behind it, login CTA |
 | [`/family/onboarding`](apps/web/src/app/family/onboarding/) | Account and wallet setup |
-| [`/family/deposito`](apps/web/src/app/family/deposito/) | Deposit (`PixDepositCard`) |
+| [`/family/deposito`](apps/web/src/app/family/deposito/) | USDC deposit (`UsdcDepositCard`) |
 | [`/family/dashboard`](apps/web/src/app/family/dashboard/) | Freedom percentage, balance, subscriptions, history |
 | [`/family/dashboard/[subId]`](apps/web/src/app/family/dashboard/) | Single-subscription detail |
 | [`/family/saque`](apps/web/src/app/family/saque/) | Principal withdrawal |
@@ -129,11 +129,16 @@ variables, single breakpoint at 640px) and walkable end to end in
 | [`/family/configuracoes`](apps/web/src/app/family/configuracoes/) | Profile, security, wallet, subscriptions, notifications, privacy (LGPD) |
 
 > [!IMPORTANT]
-> **What is NOT wired up yet.** These screens are **frontend only**. The numbers are computed
-> client-side, with **no Privy, vault or API behind them** in this vertical, and the waitlist only
-> validates the email and shows a "sent" state — nothing is persisted. The real backend (auth,
-> household, wallet, deposit, withdraw, subs, ledger) **already runs on devnet**; what's missing is
-> **wiring the family screens into it** — see the [roadmap](#-roadmap).
+> **What's already wired, and what's still mock.** The authenticated screens
+> (`/family/dashboard`, `/family/deposito`, `/family/saque`, and the **Subscriptions** tab of
+> `/family/configuracoes`) already run against the **real backend on devnet**: real Privy login,
+> an embedded Solana wallet created and registered with the backend, deposit/withdraw as a
+> sponsored transaction signed by the client, and the subscription list via API/Postgres. There's
+> no frontend-only step left in that path. What's **still mock**, on purpose, since it isn't core
+> to the money flow: the other Settings tabs (profile, security, notifications, privacy) keep
+> state only in the browser's `localStorage` (`familyStore.ts`), and the transaction history in
+> "Wallet" is a fixed example. The landing calculator (`/family`) is a client-side simulation by
+> nature — it illustrates the product before login, it isn't anyone's real data.
 
 > [!WARNING]
 > **Kamino doesn't run on devnet.** The oracle every Kamino Lend reserve
@@ -165,10 +170,12 @@ apps/web/src/app/family/
 └── _components/
     ├── FamilyUI.tsx         → visual primitives for the vertical
     ├── DashboardHeader.tsx
-    └── PixDepositCard.tsx
+    ├── DashboardSidebar.tsx → dashboard's fixed side nav
+    └── UsdcDepositCard.tsx  → direct USDC deposit (onboarding and panel)
 ```
 
-Tests: `familyMath.test.ts`, `familyFormat.test.ts`, `family.test.tsx`.
+Tests: `familyMath.test.ts`, `familyFormat.test.ts`, `family.test.tsx`, `useFamilyData.test.tsx`,
+`UsdcDepositCard.test.tsx`.
 
 </details>
 
@@ -219,7 +226,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph web["apps/web · Next.js 16"]
-        FAM("<b>/family</b><br/>families vertical<br/><i>prototype</i>")
+        FAM("<b>/family</b><br/>families vertical<br/><i>wired to the backend</i>")
         LOGIN("<b>/login</b><br/>Privy + AuthGate")
     end
 
@@ -234,7 +241,7 @@ flowchart LR
     PG("🗄️ Postgres 16<br/>Prisma")
     SOL("⛓️ Solana · devnet<br/>USDC · Kamino Lend")
 
-    FAM -.->|"to be wired"| T
+    FAM --> T
     LOGIN --> T
     T --> AUTH
     T --> FLOW
@@ -336,7 +343,7 @@ apps/web/src/
 ├── app/
 │   ├── page.tsx      → public landing (bilingual EN/PT)
 │   ├── login/        → Google OAuth via Privy
-│   ├── family/       → families vertical (prototype)
+│   ├── family/       → families vertical, wired to the real backend
 │   ├── tokens/       → design tokens as CSS custom properties (--fx-*)
 │   ├── error.tsx · global-error.tsx · not-found.tsx → error routes
 │   └── favicon.ico
@@ -410,21 +417,22 @@ on the frontend, Vitest + Testing Library covering the API client, hooks (`useWa
 **Where we are:** the families-vertical backend runs on **Solana devnet** — Privy auth with the
 household created on first login, wallet registration with a **sponsored USDC ATA**, sponsored
 transactions (fee payer) with a guard against a foreign fee payer, ledger with principal / spendable
-/ daily 2am snapshot, subscription CRUD + reorder, and a **demo mode** (`DEMO_YIELD_BPS`) that
-injects synthetic yield for the UI before the vault earns for real. The **Kamino Lend vault is
-specified, not wired** — `vault/` has the full contract, plugging the SDK
-(`@kamino-finance/klend-sdk`) is pending. The `/family` screens remain a **frontend prototype**.
-There's no fiat ramp — deposits are direct in USDC.
+/ daily 2am snapshot, subscription CRUD + reorder — and the `/family` screens (dashboard, deposit,
+withdraw, subscriptions) **already wired into that backend end to end**. The **Kamino Lend vault
+already uses the real SDK** (`@kamino-finance/klend-sdk`) in `vault/`, but it doesn't run on devnet
+because that cluster lacks the Scope oracle (see the warning above); that's why devnet uses a mock
+vault (`VAULT_PROVIDER=mock`) with its own test currency, and **demo mode** (`DEMO_YIELD_BPS`)
+injects synthetic yield when needed. There's no fiat ramp — deposits are direct in USDC.
 
 ### Families vertical
 
 | | Item | Status |
 |:---:|---|---|
-| 🎨 | `/family` screens — 8 routes, PT/EN, responsive, complete flows | ✅ **walkable prototype** |
-| 🏦 | Wire the Kamino SDK in `vault/` (deposit/withdraw/APY/position already specified) | 🚧 **next** |
-| 🔌 | Wire `/family` into the backend (auth · wallet · deposit · withdraw · subs · ledger) | 🚧 **next** |
-| 💾 | Persist the freedom percentage server-side (today client-only) | 📋 planned |
-| ✉️ | Wire up the waitlist (today it only validates and shows "sent") | 📋 planned |
+| 🎨 | `/family` screens — 8 routes, PT/EN, responsive, complete flows | ✅ **wired, devnet** |
+| 🔌 | Real backend behind it (auth · wallet · deposit · withdraw · subs · ledger) | ✅ **coded, devnet** |
+| 🏦 | Kamino Lend vault with the real SDK in `vault/` | ✅ **coded** · 🚧 needs mainnet (no Scope oracle on devnet) |
+| 💾 | Persist the freedom percentage as a server-side metric (today computed client-side, from real API data) | 📋 planned |
+| 🧩 | Move the other Settings tabs off mock (profile, security, notifications, privacy — today `localStorage` only) | 📋 planned |
 | 👤 | Dependents who log in (migrate `Member` to a real account) | 📋 planned |
 
 ### On-chain and money
@@ -442,10 +450,11 @@ There's no fiat ramp — deposits are direct in USDC.
 <summary><b>Test and review</b></summary>
 
 **Test**
-- [ ] Deposit E2E on devnet (`build → client signs → submit → assert position`) — depends on the
-      Kamino SDK being wired and devnet USDC (faucet).
-- [ ] Spec coverage for the new services (`household`, `wallet`, `solana`, `deposit`, `subs`,
-      `ledger`) — today only `common/` has backend specs.
+- [x] Deposit/withdraw E2E on devnet (`build → client signs → submit → assert position`) already
+      runs today against the **mock vault** — the same E2E against real Kamino is still missing,
+      only possible on mainnet or Kamino's staging environment.
+- [ ] Spec coverage for `household`, `wallet`, `solana`, `deposit`, `subs` and `ledger` — today
+      only `common/`, `config/` and `vault/` have backend specs.
 - [ ] Per-screen visual verification against `design/`.
 
 **Review**
@@ -453,7 +462,8 @@ There's no fiat ramp — deposits are direct in USDC.
       before production.
 - [ ] **Production secrets** on Render/Vercel: `PRIVY_*`, `KAMINO_*`, `FEE_SPONSOR_SECRET_KEY`,
       `CORS_ORIGIN` (see `docs/DEPLOY.md`).
-- [ ] **Deposit cap:** `MAX_DEPOSIT_BASE_UNITS` is 10,000 USDC today — revisit when leaving devnet.
+- [ ] **Deposit cap:** `MAX_DEPOSIT_BASE_UNITS` is 2,000 USDC today — still deliberately
+      conservative, revisit when leaving devnet.
 - [ ] **Treasury key:** `FEE_SPONSOR_SECRET_KEY` funds all the gas — monitor its balance.
 
 </details>
@@ -480,11 +490,55 @@ pnpm web:test         # frontend only
 Configure `apps/api/.env` and `apps/web/.env.local` from their respective `*.example` files.
 
 > [!TIP]
-> The **`/family` vertical runs with no credentials at all** — it's frontend only. Just
-> `pnpm dev:web` and open `http://localhost:3000/family`. The authenticated screens (`/login`) need
-> a real `NEXT_PUBLIC_PRIVY_APP_ID`. For the full devnet flow: generate a key with
-> `solana-keygen new` (id.json format) for `FEE_SPONSOR_SECRET_KEY`, airdrop SOL to it and get
-> devnet USDC from a faucet.
+> The **public landing** (`/family`) runs with no credentials at all — just `pnpm dev:web` and
+> open `http://localhost:3000/family`. The authenticated screens (dashboard, deposit, withdraw,
+> settings, `/login`) need a real `NEXT_PUBLIC_PRIVY_APP_ID` and the backend running. For the full
+> devnet flow: generate a key with `solana-keygen new` (id.json format) for
+> `FEE_SPONSOR_SECRET_KEY`, airdrop SOL to it, and run
+> `node apps/api/scripts/create-mock-devnet-mints.cjs` once to create the test mints — then
+> `node apps/api/scripts/mint-test-currency.cjs <wallet> <amount>` to fund a wallet with test
+> balance (there's no real USDC faucet for devnet).
+
+---
+
+## 🚀 Path to mainnet
+
+What's actually left before this product leaves devnet and runs with real money. Some of these
+already show up loose in the [roadmap](#-roadmap) above — here's the concrete path, grouped by
+area.
+
+**Infra and configuration**
+- [ ] Switch `SOLANA_CLUSTER`/`SOLANA_RPC_URL` to `mainnet-beta`, with a paid RPC (Helius, Triton,
+      etc. — the public one can't handle production).
+- [ ] Switch `VAULT_PROVIDER=mock` to `kamino` — on mainnet the Scope oracle exists, so
+      `KaminoVaultService` (already coded, already uses the real SDK) starts working for real.
+- [ ] Point `KAMINO_MARKET_ADDRESS`/`KAMINO_RESERVE_ADDRESS` at a real Kamino USDC market/reserve.
+- [ ] Switch `USDC_MINT` from the test mint to real USDC
+      (`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`).
+- [ ] Fund the treasury (`FEE_SPONSOR_SECRET_KEY`) with real SOL and set up balance monitoring.
+- [ ] Pin `CORS_ORIGIN` to the real production domain — today, without that env var, the backend
+      accepts any origin.
+- [ ] Real production secrets on Render/Vercel (`PRIVY_*`, `KAMINO_*`) — see `docs/DEPLOY.md`.
+- [ ] Revisit `MAX_DEPOSIT_BASE_UNITS` (2,000 USDC today, an MVP cap) for the real production
+      limit.
+
+**Product**
+- [ ] **PIX ⇄ USDC ramp** — today deposits are USDC-only; real households will want to move money
+      in and out in reais.
+- [ ] Automated billing engine — redeem only the yield on each subscription's due date and pay it
+      automatically, no manual action.
+- [ ] Persist the freedom percentage as a server-side metric (today it's computed client-side,
+      from real API data).
+- [ ] Dependents who log in — migrate `Member` from a name record to a real account.
+- [ ] Custom escrow (Anchor program) with revenue split, if the business model needs to keep a
+      cut of the yield.
+
+**Before opening to real users**
+- [ ] Full E2E against real Kamino — only testable on mainnet or Kamino's staging environment;
+      devnet has no oracle.
+- [ ] Spec coverage for `household`, `wallet`, `solana`, `deposit`, `subs`, `ledger` (today only
+      `common/`, `config/` and `vault/` have any).
+- [ ] Rotation plan and secure custody for the treasury key — today it's a plain env var.
 
 ---
 
