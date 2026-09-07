@@ -147,7 +147,7 @@ const pt = {
     usdcStatusSubmitting: 'Enviando para a rede…',
     usdcSuccess: 'Aporte confirmado ✓',
     usdcErrorSub: 'O aporte não foi concluído. Nada saiu da sua carteira — tente de novo.',
-    usdcAmountTooHigh: 'Valor máximo por aporte: USDC 2.000. Tente um valor menor.',
+    usdcAmountTooHigh: 'Valor máximo por aporte: USDC 60.000. Tente um valor menor.',
     stepsAria: 'Progresso do cadastro',
   },
 
@@ -573,7 +573,7 @@ const en: FamilyDict = {
     usdcStatusSubmitting: 'Sending to the network…',
     usdcSuccess: 'Deposit confirmed ✓',
     usdcErrorSub: 'The deposit did not complete. Nothing left your wallet — try again.',
-    usdcAmountTooHigh: 'Maximum deposit amount: USDC 2,000. Try a smaller amount.',
+    usdcAmountTooHigh: 'Maximum deposit amount: USDC 60,000. Try a smaller amount.',
     stepsAria: 'Sign-up progress',
   },
 
