@@ -62,6 +62,23 @@ export function useFamilyData() {
     void load();
   }, [ready, authenticated, load]);
 
+  // Mantém saldo/dashboard atuais: repete a busca em intervalo e sempre que
+  // a aba volta a ficar visível/em foco (ex.: usuário troca de app e volta).
+  useEffect(() => {
+    if (!ready || !authenticated) return;
+    const interval = setInterval(() => void load(), 15_000);
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') void load();
+    };
+    document.addEventListener('visibilitychange', onFocusOrVisible);
+    window.addEventListener('focus', onFocusOrVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onFocusOrVisible);
+      window.removeEventListener('focus', onFocusOrVisible);
+    };
+  }, [ready, authenticated, load]);
+
   const createSub = useCallback(
     async (input: { name: string; price: number; category: string }) => {
       const api = createApi(getAccessToken);

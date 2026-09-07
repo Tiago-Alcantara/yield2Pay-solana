@@ -8,13 +8,14 @@
  * backend monta (sponsor como feePayer) → Privy assina → backend envia.
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { C, CHROME_SHADOW, cardLabel } from '../_lib/familyTheme';
-import { fmtUsdc, numericOnly, parseUsdc, toBaseUnitsString } from '../_lib/familyFormat';
+import { fmtUsdc, numericOnly, parseUsdc, toBaseUnitsString, toUsdcNumber } from '../_lib/familyFormat';
 import { useFamily } from '../_lib/FamilyProvider';
+import { usePrivy } from '@privy-io/react-auth';
 import { useSolanaTx } from '@/lib/useSolanaTx';
 import { useWallet } from '@/lib/useWallet';
-import { ApiError } from '@/lib/api';
+import { ApiError, createApi } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errors';
 import { dismissErrorNotification } from '@/lib/errorNotifications';
 
@@ -30,13 +31,29 @@ export function UsdcDepositCard({
   onBack?: () => void;
 }) {
   const { t } = useFamily();
+  const { getAccessToken } = usePrivy();
   const { address } = useWallet();
   const { deposit } = useSolanaTx();
   const [amount, setAmount] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
   const [errorMessage, setErrorMessage] = useState(t.onboarding.usdcErrorSub);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   const parsed = parseUsdc(amount);
+
+  const loadWalletBalance = useCallback(async () => {
+    try {
+      const view = await createApi(getAccessToken).getWalletBalance();
+      setWalletBalance(toUsdcNumber(view.balance));
+    } catch {
+      // Saldo é informativo aqui; se a leitura falhar, só some a linha —
+      // o popup de erro global já cobre falhas relevantes.
+    }
+  }, [getAccessToken]);
+
+  useEffect(() => {
+    void loadWalletBalance();
+  }, [loadWalletBalance]);
 
   async function handleDeposit() {
     if (parsed <= 0 || phase === 'running') return;
@@ -44,6 +61,7 @@ export function UsdcDepositCard({
     try {
       const txSignature = await deposit(toBaseUnitsString(parsed));
       setPhase('done');
+      void loadWalletBalance();
       onDone(txSignature);
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
@@ -113,6 +131,22 @@ export function UsdcDepositCard({
         >
           {address ?? '—'}
         </div>
+        {walletBalance !== null && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+              marginTop: 10,
+              fontFamily: C.mono,
+              fontSize: 11.5,
+              color: C.text4,
+            }}
+          >
+            <span>{t.onboarding.usdcBalanceLabel}</span>
+            <span>{fmtUsdc(walletBalance)}</span>
+          </div>
+        )}
       </div>
 
       <label
