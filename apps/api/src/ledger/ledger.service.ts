@@ -51,13 +51,15 @@ export class LedgerService {
   }
 
   async computeSpendable(householdId: string) {
-    // getAddress e principal são consultas independentes ao DB → rodam em
-    // paralelo. getPositionValue depende do address, então vem depois.
-    const [address, principal] = await Promise.all([
-      this.wallet.getAddress(householdId),
-      this.principal(householdId),
-    ]);
-    let vaultValue = await this.vault.getPositionValue(address);
+    // TEMPORÁRIO: principal vinha da soma de `deposits` no banco, mas o
+    // registro via API não está confiável ainda (ver depósito não refletindo
+    // no dashboard) — por enquanto o principal é o próprio saldo on-chain do
+    // cofre (mock vault em devnet é 1:1 com o que foi depositado, sem
+    // valorização real), então não depende do banco pra nada. Reverter para
+    // this.principal(householdId) quando o pipeline do ledger for corrigido.
+    const address = await this.wallet.getAddress(householdId);
+    const principal = await this.vault.getPositionValue(address);
+    let vaultValue = principal;
     // Demo: injeta rendimento sintético quando DEMO_YIELD_BPS > 0, para
     // demonstrar rendimento já no primeiro mês (aporte recém-feito ainda não
     // rendeu). Em produção a flag fica 0 e nada muda.
