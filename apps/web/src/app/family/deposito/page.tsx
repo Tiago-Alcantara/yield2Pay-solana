@@ -27,7 +27,10 @@ export default function FamilyDepositPage() {
         </div>
         <UsdcDepositCard
           fromApp
-          onDone={() => router.push('/family/dashboard')}
+          onDone={() => {
+            router.refresh();
+            router.push('/family/dashboard');
+          }}
           onBack={() => router.push('/family/dashboard')}
         />
       </div>

@@ -224,7 +224,12 @@ export default function FamilyOnboardingPage() {
         )}
 
         {step === 3 && (
-          <UsdcDepositCard onDone={() => router.push('/family/dashboard')} />
+          <UsdcDepositCard
+            onDone={() => {
+              router.refresh();
+              router.push('/family/dashboard');
+            }}
+          />
         )}
 
         <div
