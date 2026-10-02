@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="pt-BR" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Yield2Pay · comercial</title>
+    <script src="assets/vendor/gsap-3.14.2.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Hanken Grotesk";
+        src: url("assets/fonts/hanken-grotesk-latin-400-normal.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Hanken Grotesk";
+        src: url("assets/fonts/hanken-grotesk-latin-500-normal.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Hanken Grotesk";
+        src: url("assets/fonts/hanken-grotesk-latin-600-normal.woff2") format("woff2");
+        font-weight: 600;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Hanken Grotesk";
+        src: url("assets/fonts/hanken-grotesk-latin-700-normal.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Geist Mono";
+        src: url("assets/fonts/geist-mono-latin-400-normal.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Geist Mono";
+        src: url("assets/fonts/geist-mono-latin-500-normal.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Geist Mono";
+        src: url("assets/fonts/geist-mono-latin-600-normal.woff2") format("woff2");
+        font-weight: 600;
+        font-style: normal;
+      }
+
+      /* Tokens: apps/web/src/app/tokens/colors.css + family/_lib/familyTheme.ts */
+      :root {
+        --bg: #0c0d0f;
+        --card: #1a1c1f;
+        --well: #16181b;
+        --border: #2a2d31;
+        --border-metal: #4a4d52;
+        --text: #edeff1;
+        --strong: #f2f3f4;
+        --text2: #9a9da1;
+        --text3: #8a8d91;
+        --soft: #c8cacd;
+        --silver: #c0c2c5;
+        --silver-bright: #d4d6d9;
+        --chrome: linear-gradient(180deg, #e6e8ea, #a8aaad);
+        --fill: linear-gradient(90deg, #a8aaad, #e6e8ea);
+        --emboss: 0 1px 0 rgba(255, 255, 255, 0.13), 0 -1px 1px rgba(0, 0, 0, 0.6);
+        --mono: "Geist Mono", ui-monospace, monospace;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #0c0d0f;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0c0d0f;
+        color: var(--text);
+        font-family: "Hanken Grotesk", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        --audio: 0;
+      }
+
+      /* Fundo fixo: o design system diz que o fundo nunca anima. */
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(120% 60% at 50% -10%, #1b1d20 0%, #0c0d0f 60%);
+      }
+      #grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.05;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      }
+
+      .scene {
+        width: 100%;
+        height: 100%;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 24px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--silver);
+      }
+      .head {
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.04;
+        color: var(--text);
+        text-shadow: var(--emboss);
+        text-wrap: balance;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 900px 1fr;
+        align-items: center;
+        height: 100%;
+        padding: 0 120px;
+        column-gap: 60px;
+      }
+      .center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+      }
+      svg {
+        display: block;
+        overflow: visible;
+      }
+      .draw {
+        fill: none;
+        stroke: url(#silver);
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .glow {
+        filter: drop-shadow(0 0 calc(10px + var(--audio) * 22px) rgba(192, 194, 197, calc(0.18 + var(--audio) * 0.3)));
+      }
+      .tag {
+        display: inline-block;
+        padding: 6px 18px;
+        border-radius: 999px;
+        border: 2px solid var(--silver);
+        background: rgba(192, 194, 197, 0.1);
+        font-family: var(--mono);
+        font-size: 26px;
+        color: var(--strong);
+      }
+      .icon-row {
+        display: flex;
+        align-items: center;
+        gap: 34px;
+      }
+      .icon-label {
+        flex: 1;
+        font-size: 36px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .seal {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        font-family: var(--mono);
+        font-size: 26px;
+        color: var(--silver);
+      }
+      .seal-dot {
+        display: block;
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        background: linear-gradient(135deg, #e6e8ea, #9a9da1);
+        transform: rotate(45deg);
+      }
+      .diamond {
+        display: block;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #e6e8ea, #9a9da1);
+        transform: rotate(45deg);
+        box-shadow: 0 0 calc(16px + var(--audio) * 26px) rgba(192, 194, 197, calc(0.3 + var(--audio) * 0.3));
+      }
+      .split { grid-template-columns: 1fr; row-gap: 70px; align-content: center; justify-items: center; padding: 0 80px; text-align: center; }
+      .split > svg { width: 620px; height: auto; }
+      #s5-logo .head { font-size: 120px !important; }
+      #s5-a, #s5-b { max-width: 920px; font-size: 60px !important; }
+      #s1-a, #s4-a { font-size: 96px !important; }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute">
+      <defs>
+        <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#E6E8EA" />
+          <stop offset="1" stop-color="#9A9DA1" />
+        </linearGradient>
+        <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#3c3f44" />
+          <stop offset="0.3" stop-color="#26282c" />
+          <stop offset="0.55" stop-color="#16181b" />
+          <stop offset="0.78" stop-color="#303338" />
+          <stop offset="1" stop-color="#1b1d21" />
+        </linearGradient>
+        <radialGradient id="coin" cx="0.35" cy="0.3" r="0.8">
+          <stop offset="0" stop-color="#F2F3F4" />
+          <stop offset="1" stop-color="#9A9DA1" />
+        </radialGradient>
+      </defs>
+    </svg>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="22.5" data-width="1080" data-height="1920" data-fps="30">
+      <div id="bg"></div>
+      <div id="grain"></div>
+
+      <!-- Cena 1 · Todo mês (0–3.7) -->
+      <section id="s1" class="clip scene" data-start="0" data-duration="3.7" data-track-index="1">
+        <div class="split">
+          <svg id="house" viewBox="0 0 700 600" width="760" height="650">
+            <path class="draw" pathLength="1" id="house-body" d="M110 290 L350 90 L590 290 L590 540 L110 540 Z" />
+            <path class="draw" pathLength="1" id="house-door" d="M300 540 L300 400 L400 400 L400 540" />
+            <path class="draw" pathLength="1" id="house-win" d="M170 330 h80 v70 h-80 Z M450 330 h80 v70 h-80 Z" />
+            <g id="bill-1"><rect x="310" y="420" width="80" height="104" rx="10" fill="url(#metal)" stroke="#C0C2C5" stroke-width="4" /><path d="M326 450 h48 M326 470 h48 M326 490 h30" stroke="#C0C2C5" stroke-width="4" stroke-linecap="round" /></g>
+            <g id="bill-2"><rect x="310" y="420" width="80" height="104" rx="10" fill="url(#metal)" stroke="#C0C2C5" stroke-width="4" /><path d="M326 450 h48 M326 470 h48 M326 490 h30" stroke="#C0C2C5" stroke-width="4" stroke-linecap="round" /></g>
+            <g id="bill-3"><rect x="310" y="420" width="80" height="104" rx="10" fill="url(#metal)" stroke="#C0C2C5" stroke-width="4" /><path d="M326 450 h48 M326 470 h48 M326 490 h30" stroke="#C0C2C5" stroke-width="4" stroke-linecap="round" /></g>
+          </svg>
+          <div>
+            <div id="s1-k" class="eyebrow">Toda casa</div>
+            <div id="s1-a" class="head" style="font-size: 104px; margin-top: 26px">Todo mês, as contas saem.</div>
+            <div id="s1-b" class="head" style="font-size: 104px; margin-top: 30px; color: var(--text2)">E não voltam.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 2 · Deposite uma vez (3.7–8.96) -->
+      <section id="s2" class="clip scene" data-start="3.7" data-duration="5.26" data-track-index="2">
+        <div class="split">
+          <svg id="vault" viewBox="0 0 600 600" width="680" height="680" class="glow">
+            <rect x="60" y="60" width="480" height="480" rx="56" fill="url(#metal)" stroke="#4a4d52" stroke-width="6" />
+            <rect x="60" y="60" width="480" height="480" rx="56" class="draw" pathLength="1" id="vault-edge" />
+            <g id="vault-door">
+              <circle cx="300" cy="300" r="150" fill="#16181b" stroke="url(#silver)" stroke-width="8" />
+              <circle cx="300" cy="300" r="34" fill="url(#silver)" />
+              <path d="M300 170 V266 M300 334 V430 M170 300 H266 M334 300 H430" stroke="url(#silver)" stroke-width="12" stroke-linecap="round" />
+            </g>
+            <rect x="250" y="84" width="100" height="14" rx="7" fill="#0c0d0f" stroke="#C0C2C5" stroke-width="3" />
+            <g id="big-coin"><circle cx="300" cy="-120" r="56" fill="url(#coin)" /><circle cx="300" cy="-120" r="38" fill="none" stroke="#7E8186" stroke-width="4" /></g>
+          </svg>
+          <div>
+            <div id="s2-k" class="eyebrow">Cofre DeFi na rede Solana</div>
+            <div id="s2-a" class="head" style="font-size: 120px; margin-top: 26px">Deposite uma vez.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 3 · O rendimento paga (8.96–13.4) -->
+      <section id="s3" class="clip scene" data-start="8.96" data-duration="4.44" data-track-index="3">
+        <div style="position: absolute; left: 80px; top: 170px; width: 920px">
+          <div id="s3-head" class="head" style="font-size: 84px">Só o rendimento paga suas assinaturas.</div>
+        </div>
+        <svg id="s3-vault" viewBox="0 0 600 600" width="420" height="420" class="glow" style="position: absolute; left: 330px; top: 400px">
+          <rect x="60" y="60" width="480" height="480" rx="56" fill="url(#metal)" stroke="#4a4d52" stroke-width="6" />
+          <circle cx="300" cy="300" r="150" fill="#16181b" stroke="url(#silver)" stroke-width="8" />
+          <circle cx="300" cy="300" r="34" fill="url(#silver)" />
+          <path d="M300 170 V266 M300 334 V430 M170 300 H266 M334 300 H430" stroke="url(#silver)" stroke-width="12" stroke-linecap="round" />
+        </svg>
+        <svg viewBox="0 0 1080 1920" width="1080" height="1920" style="position: absolute; left: 0; top: 0" data-layout-ignore>
+          <path class="draw" pathLength="1" id="flow-1" d="M540 820 C 540 980, 900 940, 770 1060" style="stroke-width: 4; stroke-dasharray: 1; opacity: 0.6" />
+          <path class="draw" pathLength="1" id="flow-2" d="M540 820 C 540 1050, 900 1100, 770 1230" style="stroke-width: 4; stroke-dasharray: 1; opacity: 0.6" />
+          <path class="draw" pathLength="1" id="flow-3" d="M540 820 C 540 1150, 900 1250, 770 1400" style="stroke-width: 4; stroke-dasharray: 1; opacity: 0.6" />
+          <circle id="coin-1" cx="540" cy="820" r="20" fill="url(#coin)" />
+          <circle id="coin-2" cx="540" cy="820" r="20" fill="url(#coin)" />
+          <circle id="coin-3" cx="540" cy="820" r="20" fill="url(#coin)" />
+        </svg>
+        <div style="position: absolute; left: 100px; top: 1000px; width: 880px; display: flex; flex-direction: column; gap: 50px">
+          <div id="row-1" class="icon-row">
+            <svg viewBox="0 0 120 120" width="120" height="120"><rect x="8" y="22" width="104" height="70" rx="12" class="draw" /><path d="M50 42 L74 57 L50 72 Z" fill="url(#silver)" /><path d="M40 106 H80" class="draw" /></svg>
+            <span class="icon-label">Streaming</span><span id="tag-1" class="tag">pago</span>
+          </div>
+          <div id="row-2" class="icon-row">
+            <svg viewBox="0 0 120 120" width="120" height="120"><path d="M48 90 V24 L96 14 V80" class="draw" /><circle cx="36" cy="90" r="14" fill="url(#silver)" /><circle cx="84" cy="80" r="14" fill="url(#silver)" /></svg>
+            <span class="icon-label">Música</span><span id="tag-2" class="tag">pago</span>
+          </div>
+          <div id="row-3" class="icon-row">
+            <svg viewBox="0 0 120 120" width="120" height="120"><path d="M10 46 L60 24 L110 46 L60 68 Z" class="draw" /><path d="M32 58 V84 C 46 98, 74 98, 88 84 V58" class="draw" /><path d="M110 46 V76" class="draw" /></svg>
+            <span class="icon-label">Escola de inglês</span><span id="tag-3" class="tag">pago</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 4 · O principal fica (13.4–17.6) -->
+      <section id="s4" class="clip scene" data-start="13.4" data-duration="4.2" data-track-index="4">
+        <div class="split">
+          <svg id="s4-vault" viewBox="0 0 600 600" width="640" height="640" class="glow">
+            <rect x="60" y="60" width="480" height="480" rx="56" fill="url(#metal)" stroke="#4a4d52" stroke-width="6" />
+            <circle cx="300" cy="300" r="150" fill="#16181b" stroke="url(#silver)" stroke-width="8" />
+            <circle cx="300" cy="300" r="34" fill="url(#silver)" />
+            <path d="M300 170 V266 M300 334 V430 M170 300 H266 M334 300 H430" stroke="url(#silver)" stroke-width="12" stroke-linecap="round" />
+            <g id="key">
+              <circle cx="470" cy="470" r="48" fill="none" stroke="url(#silver)" stroke-width="14" />
+              <path d="M436 504 L360 580 M392 548 L414 570 M372 568 L390 586" stroke="url(#silver)" stroke-width="14" stroke-linecap="round" />
+            </g>
+          </svg>
+          <div>
+            <div id="s4-k" class="eyebrow">A chave é sua</div>
+            <div id="s4-a" class="head" style="font-size: 110px; margin-top: 26px">O principal continua seu.</div>
+            <div id="s4-b" class="head" style="font-size: 64px; margin-top: 34px; color: var(--soft)">Saque quando quiser.</div>
+            <div id="s4-c" style="margin-top: 44px"><span class="seal"><span class="seal-dot"></span>Não-custodial</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cena 5 · Assinatura (17.6–22.5) -->
+      <section id="s5" class="clip scene" data-start="17.6" data-duration="4.9" data-track-index="5">
+        <div class="center">
+          <div id="s5-logo" style="display: flex; align-items: center; gap: 44px">
+            <span id="s5-dia" style="display: flex; width: 110px; height: 110px; align-items: center; justify-content: center"><span class="diamond" style="width: 74px; height: 74px"></span></span>
+            <span class="head" style="font-size: 150px; letter-spacing: -0.01em">Yield2Pay</span>
+          </div>
+          <div id="s5-a" class="head" style="font-size: 64px; margin-top: 60px; max-width: 1500px">O rendimento do seu dinheiro paga suas assinaturas.</div>
+          <div id="s5-b" class="head" style="font-size: 64px; margin-top: 14px; color: var(--soft)">E o dinheiro continua sendo seu.</div>
+          <div id="s5-c" style="margin-top: 48px; font-size: 22px; color: var(--text2)">O rendimento gerado é variável e pode ser zero.</div>
+        </div>
+      </section>
+
+      <audio id="music" src="assets/music/happy-beats-business-moves-vol-11-by-ende-dot-app.mp3" data-start="0" data-duration="22.5" data-track-index="10" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":0.34},{"t":21.3,"v":0.34},{"t":22.5,"v":0}]}]}'></audio>
+      <audio id="sfx-b1" src="assets/sfx/interface/drop_001.ogg" data-start="1.6" data-duration="0.11" data-track-index="11" data-volume="0.45"></audio>
+      <audio id="sfx-b2" src="assets/sfx/interface/drop_002.ogg" data-start="2.12" data-duration="0.19" data-track-index="12" data-volume="0.45"></audio>
+      <audio id="sfx-b3" src="assets/sfx/interface/drop_001.ogg" data-start="2.65" data-duration="0.11" data-track-index="13" data-volume="0.45"></audio>
+      <audio id="sfx-coin" src="assets/sfx/ui/chip-lay-1.ogg" data-start="5.2" data-duration="0.17" data-track-index="11" data-volume="0.55"></audio>
+      <audio id="sfx-lock" src="assets/sfx/interface/bong_001.ogg" data-start="5.8" data-duration="0.12" data-track-index="12" data-volume="0.6"></audio>
+      <audio id="sfx-p1" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="10.54" data-duration="0.18" data-track-index="11" data-volume="0.5"></audio>
+      <audio id="sfx-p2" src="assets/sfx/impact/impactSoft_medium_002.ogg" data-start="11.6" data-duration="0.14" data-track-index="12" data-volume="0.5"></audio>
+      <audio id="sfx-p3" src="assets/sfx/impact/impactSoft_medium_004.ogg" data-start="12.65" data-duration="0.15" data-track-index="13" data-volume="0.5"></audio>
+      <audio id="sfx-c1" src="assets/sfx/ui/chip-lay-2.ogg" data-start="9.9" data-duration="0.23" data-track-index="14" data-volume="0.35"></audio>
+      <audio id="sfx-c3" src="assets/sfx/ui/chip-lay-3.ogg" data-start="12.0" data-duration="0.24" data-track-index="14" data-volume="0.35"></audio>
+      <audio id="sfx-key" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="14.22" data-duration="1.48" data-track-index="11" data-volume="0.35"></audio>
+      <audio id="sfx-logo" src="assets/sfx/impact/impactBell_heavy_003.ogg" data-start="17.88" data-duration="0.65" data-track-index="12" data-volume="0.55"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const rootEl = document.getElementById("root");
+      const AUDIO_ENV = [0.74,0.74,0.71,0.67,0.63,0.59,0.56,0.53,0.52,0.51,0.49,0.48,0.47,0.45,0.43,0.42,1,0.95,0.89,0.82,0.76,0.71,0.66,0.61,0.57,0.54,0.51,0.48,0.45,0.42,0.4,0.39,0.86,0.82,0.77,0.73,0.67,0.63,0.58,0.54,0.51,0.48,0.45,0.42,0.41,0.39,0.37,0.61,0.74,0.71,0.67,0.63,0.58,0.53,0.49,0.47,0.47,0.46,0.45,0.43,0.41,0.39,0.36,0.7,0.7,0.68,0.64,0.6,0.57,0.54,0.51,0.5,0.48,0.46,0.44,0.41,0.39,0.37,0.35,0.77,0.76,0.72,0.67,0.62,0.58,0.54,0.51,0.48,0.45,0.42,0.4,0.37,0.36,0.34,0.33,0.81,0.78,0.74,0.7,0.65,0.6,0.56,0.52,0.49,0.45,0.42,0.39,0.37,0.35,0.33,0.42,0.84,0.8,0.76,0.7,0.63,0.58,0.53,0.5,0.48,0.46,0.44,0.42,0.4,0.37,0.35,0.64,0.64,0.62,0.59,0.56,0.54,0.51,0.49,0.48,0.47,0.46,0.45,0.44,0.42,0.41,0.39,0.73,0.71,0.67,0.63,0.6,0.57,0.54,0.52,0.5,0.48,0.45,0.43,0.41,0.39,0.37,0.35,0.81,0.78,0.74,0.71,0.66,0.61,0.57,0.53,0.5,0.48,0.45,0.42,0.4,0.38,0.36,0.35,0.9,0.87,0.81,0.76,0.69,0.63,0.58,0.54,0.52,0.5,0.48,0.46,0.44,0.41,0.38,0.47,0.79,0.76,0.72,0.67,0.63,0.59,0.56,0.54,0.52,0.51,0.5,0.48,0.45,0.43,0.41,0.72,0.71,0.67,0.63,0.59,0.55,0.52,0.48,0.46,0.44,0.42,0.4,0.38,0.37,0.36,0.35,0.7,0.7,0.66,0.62,0.58,0.54,0.5,0.46,0.43,0.41,0.39,0.37,0.36,0.35,0.34,0.33,0.88,0.85,0.81,0.75,0.7,0.64,0.6,0.55,0.52,0.49,0.47,0.45,0.41,0.39,0.36,0.35,0.8,0.78,0.74,0.7,0.65,0.61,0.58,0.56,0.54,0.52,0.5,0.48,0.47,0.45,0.42,0.53,0.88,0.82,0.77,0.71,0.66,0.62,0.58,0.54,0.51,0.49,0.47,0.44,0.42,0.4,0.38,0.65,0.69,0.67,0.64,0.6,0.56,0.53,0.49,0.46,0.44,0.41,0.39,0.38,0.37,0.36,0.36,0.77,0.75,0.72,0.68,0.63,0.58,0.54,0.5,0.48,0.48,0.46,0.45,0.43,0.4,0.38,0.35,0.87,0.84,0.79,0.74,0.7,0.66,0.62,0.59,0.57,0.55,0.53,0.5,0.47,0.45,0.42,0.41,0.84,0.79,0.74,0.69,0.64,0.6,0.56,0.52,0.49,0.46,0.43,0.41,0.39,0.37,0.35,0.52,0.79,0.76,0.72,0.68,0.63,0.58,0.54,0.5,0.48,0.44,0.41,0.38,0.37,0.35,0.32,0.71,0.71,0.68,0.64,0.59,0.54,0.5,0.46,0.44,0.43,0.42,0.4,0.39,0.37,0.34,0.32,0.78,0.76,0.73,0.69,0.65,0.62,0.58,0.55,0.54,0.53,0.51,0.5,0.48,0.46,0.44,0.42,0.75,0.72,0.68,0.64,0.6,0.57,0.54,0.51,0.48,0.46,0.43,0.41,0.39,0.37,0.35,0.44,0.78,0.75,0.72,0.68,0.64,0.6,0.56,0.52,0.49,0.46,0.44,0.41,0.39,0.38,0.35,0.65,0.76,0.72,0.68,0.63,0.58,0.54,0.5,0.47,0.46,0.45,0.44,0.43,0.4,0.38,0.35,0.33,0.32,0.32,0.31,0.31,0.31,0.31,0.4,0.43,0.45,0.45,0.44,0.42,0.41,0.4,0.39,0.38,0.37,0.35,0.34,0.33,0.33,0.32,0.31,0.3,0.3,0.29,0.28,0.27,0.27,0.27,0.29,0.3,0.32,0.31,0.3,0.29,0.27,0.25,0.23,0.22,0.2,0.18,0.17,0.21,0.2,0.19,0.18,0.18,0.17,0.17,0.16,0.15,0.15,0.14,0.14,0.14,0.14,0.14,0.14,0.14,0.15,0.14,0.75,0.73,0.69,0.66,0.63,0.6,0.57,0.55,0.53,0.53,0.52,0.51,0.5,0.48,0.46,0.44,0.84,0.8,0.75,0.7,0.67,0.65,0.62,0.59,0.56,0.54,0.51,0.49,0.47,0.46,0.45,0.44,0.81,0.78,0.74,0.7,0.65,0.62,0.58,0.54,0.52,0.49,0.47,0.45,0.46,0.45,0.44,0.56,0.68,0.66,0.62,0.58,0.55,0.52,0.49,0.47,0.56,0.55,0.54,0.54,0.53,0.51,0.5,0.76,0.74,0.7,0.66,0.62,0.59,0.56,0.54,0.52,0.52,0.51,0.48,0.46,0.44,0.42,0.41,0.76,0.74,0.7,0.65,0.62,0.6,0.58,0.56,0.53,0.51,0.49,0.47,0.45,0.43,0.41,0.4,0.79,0.77,0.73,0.69,0.65,0.61,0.58,0.55,0.52,0.5,0.48,0.46,0.45,0.45,0.44,0.43,0.77,0.74,0.7,0.66,0.62,0.58,0.55,0.52,0.51,0.5,0.49,0.48,0.47,0.46,0.44,0.66,0.65,0.62,0.59,0.56,0.53,0.5,0.48,0.47,0.5,0.5,0.49,0.48,0.47,0.46,0.45,0.76,0.73,0.68,0.64,0.61,0.59,0.57,0.55,0.53,0.51,0.49,0.47,0.46,0.44,0.43,0.42,0.74,0.72,0.69,0.66,0.62,0.59,0.56,0.53,0.51,0.49,0.48,0.47];
+      const setAudio = (v) => rootEl.style.setProperty("--audio", v);
+      setAudio(AUDIO_ENV[0] || 0);
+      for (let f = 0; f < AUDIO_ENV.length; f++) tl.call(setAudio, [AUDIO_ENV[f]], f / 30);
+
+      const inUp = (sel, at, y = 34, d = 0.55) =>
+        tl.fromTo(sel, { opacity: 0, y }, { opacity: 1, y: 0, duration: d, ease: "power3.out" }, at);
+      const draw = (sel, at, d = 0.9) =>
+        tl.fromTo(sel, { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: d, ease: "power2.inOut" }, at);
+
+      // Cena 1 — a casa se desenha e as contas saem pela porta, uma por beat
+      draw("#house-body", 0.05, 1.0);
+      draw("#house-door", 0.45, 0.6);
+      draw("#house-win", 0.6, 0.6);
+      [1.6, 2.12, 2.65].forEach((at, i) => {
+        tl.fromTo("#bill-" + (i + 1), { opacity: 0, x: 0, y: 0, rotation: 0, transformOrigin: "50% 50%" },
+          { opacity: 1, duration: 0.12 }, at);
+        tl.to("#bill-" + (i + 1), { x: 330 + i * 30, y: -300 + i * 120, rotation: 18 - i * 14, duration: 0.9, ease: "power2.in" }, at);
+        tl.to("#bill-" + (i + 1), { opacity: 0, duration: 0.25 }, at + 0.7);
+      });
+      inUp("#s1-k", 0.2, 14, 0.4);
+      inUp("#s1-a", 0.35);
+      inUp("#s1-b", 1.9);
+      tl.to("#s1 .split", { opacity: 0, duration: 0.25, ease: "power2.in" }, 3.42);
+
+      // Cena 2 — o cofre entra, a moeda cai e a porta trava (beat-locked: 5.80)
+      tl.fromTo("#vault", { opacity: 0, scale: 0.9, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, 3.7);
+      draw("#vault-edge", 3.75, 0.9);
+      tl.fromTo("#big-coin", { y: -120, opacity: 0 }, { y: 210, opacity: 1, duration: 0.5, ease: "power2.in" }, 4.7);
+      tl.to("#big-coin", { opacity: 0, duration: 0.08 }, 5.24);
+      tl.fromTo("#vault-door", { rotation: 0, svgOrigin: "300 300" }, { rotation: 180, svgOrigin: "300 300", duration: 0.55, ease: "back.out(1.4)" }, 5.25);
+      inUp("#s2-k", 3.9, 14, 0.4);
+      inUp("#s2-a", 4.05);
+      tl.to("#s2 .split", { opacity: 0, duration: 0.25, ease: "power2.in" }, 8.68);
+
+      // Cena 3 — o rendimento corre até as contas (beat-grid: 10.54 / 11.60 / 12.65)
+      inUp("#s3-head", 8.96);
+      tl.fromTo("#s3-vault", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 8.96);
+      ["#row-1", "#row-2", "#row-3"].forEach((s, i) => inUp(s, 9.1 + i * 0.12, 20, 0.45));
+      const ENDS = [[770, 1060], [770, 1230], [770, 1400]];
+      [10.54, 11.6, 12.65].forEach((at, i) => {
+        const n = i + 1;
+        draw("#flow-" + n, at - 0.75, 0.6);
+        tl.fromTo("#coin-" + n, { x: 0, y: 0, opacity: 0 }, { opacity: 1, duration: 0.1 }, at - 0.62);
+        tl.to("#coin-" + n, { x: ENDS[i][0] - 540, duration: 0.6, ease: "power1.inOut" }, at - 0.6);
+        tl.to("#coin-" + n, { y: ENDS[i][1] - 820, duration: 0.6, ease: "sine.inOut" }, at - 0.6);
+        tl.to("#coin-" + n, { opacity: 0, duration: 0.1 }, at);
+        tl.fromTo("#tag-" + n, { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, at);
+      });
+      tl.to("#s3 > *", { opacity: 0, duration: 0.25, ease: "power2.in" }, 13.12);
+
+      // Cena 4 — o principal fica; a chave é sua
+      tl.fromTo("#s4-vault", { opacity: 0, scale: 0.92, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, 13.4);
+      tl.fromTo("#key", { opacity: 0, x: 60, y: 60 }, { opacity: 1, x: 0, y: 0, duration: 0.6, ease: "back.out(1.6)" }, 14.0);
+      inUp("#s4-k", 13.5, 14, 0.4);
+      inUp("#s4-a", 13.6);
+      inUp("#s4-b", 14.6, 20, 0.45);
+      inUp("#s4-c", 15.1, 14, 0.4);
+      tl.to("#s4 .split", { opacity: 0, duration: 0.25, ease: "power2.in" }, 17.32);
+
+      // Cena 5 — assinatura (beat-locked: 17.91)
+      tl.fromTo("#s5-logo", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.31, ease: "power3.out" }, 17.6);
+      tl.fromTo("#s5-dia", { rotation: -90, scale: 0.5 }, { rotation: 0, scale: 1, duration: 0.6, ease: "back.out(1.5)" }, 17.62);
+      inUp("#s5-a", 18.2);
+      inUp("#s5-b", 19.3);
+      tl.fromTo("#s5-c", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 19.8);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
