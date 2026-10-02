@@ -1,0 +1,6 @@
+# Trilha já versionada em .claude/skills/brag/assets/music (ver README.md)
+composition/assets/music/*.mp3
+# Saídas temporárias do Hyperframes
+composition/snapshots/
+composition/renders/
+composition/.hyperframes/

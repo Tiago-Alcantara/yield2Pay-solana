@@ -1,0 +1,3 @@
+Apresentando a Yield2Pay: o rendimento do seu próprio dinheiro paga suas assinaturas.
+Você deposita uma vez, o rendimento cobre a Netflix, o Spotify e a escola de inglês, e o principal continua seu.
+Não-custodial, construído na Solana.
