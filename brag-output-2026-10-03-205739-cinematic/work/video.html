@@ -45,7 +45,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:#07080a}
  </div></div>
  <!-- P4 cards em profundidade -->
  <div class="o" id="c1" style="transform:translate3d(-560px,-210px,-6900px) rotateY(18deg)"><div class="c card metalf"><div class="eb">01</div><div class="h" style="font-size:66px;margin-top:120px">Não-custodial</div></div></div>
- <div class="o" id="c2" style="transform:translate3d(0,120px,-7100px)"><div class="c card metalf"><div class="eb">02</div><div class="h" style="font-size:66px;margin-top:120px">Saque quando quiser</div></div></div>
+ <div class="o" id="c2" style="transform:translate3d(0,260px,-7100px)"><div class="c card metalf"><div class="eb">02</div><div class="h" style="font-size:66px;margin-top:120px">Saque quando quiser</div></div></div>
  <div class="o" id="c3" style="transform:translate3d(560px,-210px,-6900px) rotateY(-18deg)"><div class="c card metalf"><div class="eb">03</div><div class="h" style="font-size:66px;margin-top:120px">Sem mensalidade</div></div></div>
  <!-- P5 logo -->
  <div class="o" id="p5" style="transform:translate3d(0,0,-9400px)"><div class="c" style="text-align:center">
@@ -63,7 +63,7 @@ function chars(el,txt){el.innerHTML=txt.split('').map(c=>`<span class="ch">${c==
 chars($('k1'),'O RENDIMENTO');chars($('k2'),'PAGA AS CONTAS');chars($('k3'),'e o dinheiro fica com você');
 chars($('k4'),'Deposite uma vez.');chars($('k5'),'E o dinheiro continua sendo seu.');
 function kin(el,t,a,step=.035,out=99){[...el.children].forEach((s,i)=>{const p=eo((t-a-i*step)/.55);const q=cl((t-out-i*.015)/.3);
- s.style.opacity=p*(1-q);s.style.transform=`translate3d(0,${(1-p)*90-q*60}px,${(1-p)*-400}px) rotateX(${(1-p)*-80}deg)`;s.style.filter=`blur(${(1-p)*8+q*6}px)`})}
+ s.style.opacity=p*(1-q);s.style.transform=`translate3d(0,${(1-p)*90-q*60}px,${(1-p)*-400}px) rotateX(${(1-p)*-80}deg)`;})}
 // cubo
 const cube=$('cube');[[0,0,150,0,0],[0,0,-150,0,180],[150,0,0,0,90],[-150,0,0,0,-90],[0,-150,0,90,0],[0,150,0,-90,0]].forEach(([x,y,z,rx,ry])=>{
  const f=document.createElement('div');f.className='face metalf';f.style.transform=`translate3d(${x}px,${y}px,${z}px) rotateX(${rx}deg) rotateY(${ry}deg)`;cube.appendChild(f)});
@@ -73,23 +73,27 @@ const P=[];for(let i=0;i<70;i++){const d=document.createElement('div');d.classNa
  P.push({el:d,x:(rnd()-.5)*5200,y:(rnd()-.5)*2600,z:400-rnd()*10500,r:rnd()*360,sp:.3+rnd()});d.style.opacity=.15+rnd()*.35;$('parts').appendChild(d)}
 // câmera: keyframes [t, x,y,z, ry, rx]
 const K=[[0,0,0,1300,0,0],[3.4,0,0,700,0,0],[5.6,500,-40,-700,-14,2],[8.4,-300,0,-2900,10,-2],[10.8,-450,-40,-3200,14,0],[13.4,0,0,-5300,0,0],[15.6,0,0,-5500,-4,0],[17.4,0,0,-8100,0,0],[20,0,0,-8450,0,0]];
-function cam(t){let i=0;while(i<K.length-2&&t>K[i+1][0])i++;const a=K[i],b=K[i+1];const u=eio((t-a[0])/(b[0]-a[0]));
- return a.slice(1).map((v,j)=>v+(b[j+1]-v)*u)}
+function cr(p0,p1,p2,p3,u){const u2=u*u,u3=u2*u;return .5*((2*p1)+(-p0+p2)*u+(2*p0-5*p1+4*p2-p3)*u2+(-p0+3*p1-3*p2+p3)*u3)}
+function cam(t){t=Math.max(0,Math.min(19.999,t));let i=0;while(i<K.length-2&&t>K[i+1][0])i++;
+ const a=K[i],b=K[i+1],a0=K[Math.max(0,i-1)],b1=K[Math.min(K.length-1,i+2)];const u=(t-a[0])/(b[0]-a[0]);
+ return [1,2,3,4,5].map(j=>cr(a0[j],a[j],b[j],b1[j],u))}
 function render(t){
- const [x,y,z,ry,rx]=cam(t);const drift=Math.sin(t*.7)*12;
+ const [x,y,z,ry,rx]=cam(t);const drift=Math.sin(t*.5)*10;
  $('world').style.transform=`translateZ(0) rotateX(${-rx}deg) rotateY(${ry}deg) translate3d(${-x+drift}px,${-y}px,${-z+1300}px)`;
  // keep world origin: camera at z means objects shift by -z; base offset puts z=1300 at viewer distance
  kin($('k1'),t,.2,.04,3.6);kin($('k2'),t,.75,.035,3.6);kin($('k3'),t,1.5,.02,3.6);
  kin($('k4'),t,4.6,.035,8.0);kin($('k5'),t,17.6,.025);
  $('cube').style.transform=`translate3d(300px,-120px,-2000px) rotateX(${t*28}deg) rotateY(${t*40}deg)`;
  const d=60000*eio((t-9.0)/2.2), st=Math.round(d/1000)*1000, pc=Math.min(100,Math.round(st*.08/12/283.8*100));
- $('pv').textContent=pc+'%';$('pv').style.textShadow=pc>=100?'0 0 50px rgba(230,232,234,.45)':'none';
+ $('pv').textContent=pc+'%';$('pv').style.textShadow=`0 0 50px rgba(230,232,234,${(.45*cl((d-41000)/12000)).toFixed(3)})`;
  ['c1','c2','c3'].forEach((id,i)=>{const p=eo((t-12.4-i*.3)/.8);$(id).style.opacity=p});
  $('ld').style.transform=`rotate(${45+(1-eo((t-16.8)/.9))*-180}deg)`;$('d5').style.opacity=eo((t-18.6)/.5);
- const W=(a,b)=>Math.min(eo((t-a)/.6),1-cl((t-b)/.6));
+ const sm=x=>{x=cl(x);return x*x*(3-2*x)};const W=(a,b)=>Math.min(sm((t-a)/1.0),1-sm((t-b)/1.0));
  [['p1',-1,4.2],['p2',3.0,9.4],['cube',3.0,9.4],['p2t',3.0,9.4],['p3',7.4,13.6],['p3t',8.7,13.6],['p5',16.4,99]].forEach(([id,a,b])=>$(id).style.opacity=W(a,b));
- ['c1','c2','c3'].forEach(id=>$(id).style.opacity=Math.min(+$(id).style.opacity,1-cl((t-17.2)/.6)));
- P.forEach(p=>{p.el.style.transform=`translate3d(${p.x}px,${p.y+Math.sin(t*p.sp+p.r)*40}px,${p.z}px) rotateZ(45deg) rotateY(${p.r+t*60*p.sp}deg)`});
+ ['c1','c2','c3'].forEach(id=>$(id).style.opacity=Math.min(+$(id).style.opacity,1-sm((t-16.8)/1.0)));
+ const Z={p2:-2400,cube:-2000,p3:-4800,p3t:-4300,c1:-6900,c2:-7100,c3:-6900};
+ for(const id in Z){const d=z-Z[id];$(id).style.opacity=(+$(id).style.opacity||0)*sm((d-450)/450)}
+ P.forEach(p=>{p.el.style.transform=`translate3d(${p.x}px,${p.y+Math.sin(t*p.sp*.6+p.r)*30}px,${p.z}px) rotateZ(45deg)`});
 }
 window.render=render;
 </script></body></html>
