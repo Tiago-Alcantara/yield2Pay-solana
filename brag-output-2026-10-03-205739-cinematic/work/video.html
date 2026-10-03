@@ -1,0 +1,95 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:H;src:url(hanken-grotesk-latin-400-normal.woff2);font-weight:400}
+@font-face{font-family:H;src:url(hanken-grotesk-latin-700-normal.woff2);font-weight:700}
+@font-face{font-family:M;src:url(geist-mono-latin-400-normal.woff2);font-weight:400}
+@font-face{font-family:M;src:url(geist-mono-latin-600-normal.woff2);font-weight:600}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#07080a}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;perspective:1400px;font-family:H;color:#EDEFF1;
+ background:radial-gradient(90% 70% at 50% 40%,#17191c 0%,#07080a 70%)}
+#world{position:absolute;left:960px;top:540px;transform-style:preserve-3d}
+.o{position:absolute;transform-style:preserve-3d;left:0;top:0}
+.c{position:absolute;transform:translate(-50%,-50%)}
+.h{font-weight:700;letter-spacing:-.04em;line-height:1;white-space:nowrap;text-shadow:0 2px 0 rgba(255,255,255,.12),0 -2px 3px rgba(0,0,0,.7)}
+.ch{display:inline-block}
+.shot{border-radius:22px;border:2px solid #4a4d52;box-shadow:0 60px 140px rgba(0,0,0,.8);display:block}
+.metalf{background:linear-gradient(135deg,#4a4d52 0%,#26282c 30%,#16181b 55%,#3a3d42 78%,#1b1d21 100%);border:2px solid #5a5d62}
+.face{position:absolute;width:300px;height:300px;left:-150px;top:-150px;backface-visibility:visible}
+.card{width:560px;height:330px;border-radius:30px;padding:46px;box-shadow:0 50px 120px rgba(0,0,0,.7)}
+.eb{font-family:M;font-size:24px;letter-spacing:.2em;text-transform:uppercase;color:#C0C2C5}
+.dia{position:absolute;background:linear-gradient(135deg,#F2F3F4,#8a8d91);border-radius:4px}
+#vign{position:absolute;inset:0;background:radial-gradient(75% 75% at 50% 50%,transparent 55%,rgba(0,0,0,.65) 100%);pointer-events:none}
+</style></head><body><div id="stage"><div id="world">
+ <!-- partículas: losangos em profundidade -->
+ <div id="parts" class="o"></div>
+ <!-- P1 kinetic type, z=0 -->
+ <div class="o" id="p1"><div class="c" style="text-align:center">
+  <div class="h" id="k1" style="font-size:150px"></div>
+  <div class="h" id="k2" style="font-size:150px;margin-top:10px"></div>
+  <div class="h" id="k3" style="font-size:90px;margin-top:30px;color:#C8CACD"></div>
+ </div></div>
+ <!-- P2 hero do site + cubo de metal -->
+ <div class="o" id="p2" style="transform:translate3d(1100px,0,-2400px) rotateY(-28deg)">
+  <img class="c shot" src="hero.png" style="width:1400px">
+ </div>
+ <div class="o" id="cube" style="transform:translate3d(300px,-120px,-2000px)"></div>
+ <!-- P3 calculadora + 100% -->
+ <div class="o" id="p3" style="transform:translate3d(-1100px,0,-4800px) rotateY(28deg)">
+  <img class="c shot" src="calc.png" style="width:1400px">
+ </div>
+ <div class="o" id="p3t" style="transform:translate3d(-150px,-60px,-4300px)"><div class="c" style="text-align:right">
+  <div class="eb" id="eb3">Percentual de liberdade</div>
+  <div class="h" id="pv" style="font-family:M;font-weight:600;font-size:280px;letter-spacing:-.02em">0%</div>
+ </div></div>
+ <!-- P4 cards em profundidade -->
+ <div class="o" id="c1" style="transform:translate3d(-560px,-210px,-6900px) rotateY(18deg)"><div class="c card metalf"><div class="eb">01</div><div class="h" style="font-size:66px;margin-top:120px">Não-custodial</div></div></div>
+ <div class="o" id="c2" style="transform:translate3d(0,120px,-7100px)"><div class="c card metalf"><div class="eb">02</div><div class="h" style="font-size:66px;margin-top:120px">Saque quando quiser</div></div></div>
+ <div class="o" id="c3" style="transform:translate3d(560px,-210px,-6900px) rotateY(-18deg)"><div class="c card metalf"><div class="eb">03</div><div class="h" style="font-size:66px;margin-top:120px">Sem mensalidade</div></div></div>
+ <!-- P5 logo -->
+ <div class="o" id="p5" style="transform:translate3d(0,0,-9400px)"><div class="c" style="text-align:center">
+  <div style="display:flex;align-items:center;gap:50px;justify-content:center">
+   <div style="width:110px;height:110px;position:relative"><div class="dia" id="ld" style="left:18px;top:18px;width:74px;height:74px;box-shadow:0 0 40px rgba(192,194,197,.5)"></div></div>
+   <div class="h" style="font-size:190px;letter-spacing:-.01em">Yield2Pay</div></div>
+  <div class="h" id="k5" style="font-size:80px;margin-top:60px;color:#C8CACD"></div>
+  <div id="d5" style="font-size:26px;color:#9A9DA1;margin-top:50px">O rendimento gerado é variável e pode ser zero.</div>
+ </div></div>
+</div><div id="vign"></div><div id="p2t" style="position:absolute;left:140px;bottom:120px;perspective:900px"><div class="h" id="k4" style="font-size:120px"></div></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const cl=x=>Math.max(0,Math.min(1,x)), eio=x=>{x=cl(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}, eo=x=>1-Math.pow(1-cl(x),3);
+function chars(el,txt){el.innerHTML=txt.split('').map(c=>`<span class="ch">${c==' '?'&nbsp;':c}</span>`).join('')}
+chars($('k1'),'O RENDIMENTO');chars($('k2'),'PAGA AS CONTAS');chars($('k3'),'e o dinheiro fica com você');
+chars($('k4'),'Deposite uma vez.');chars($('k5'),'E o dinheiro continua sendo seu.');
+function kin(el,t,a,step=.035,out=99){[...el.children].forEach((s,i)=>{const p=eo((t-a-i*step)/.55);const q=cl((t-out-i*.015)/.3);
+ s.style.opacity=p*(1-q);s.style.transform=`translate3d(0,${(1-p)*90-q*60}px,${(1-p)*-400}px) rotateX(${(1-p)*-80}deg)`;s.style.filter=`blur(${(1-p)*8+q*6}px)`})}
+// cubo
+const cube=$('cube');[[0,0,150,0,0],[0,0,-150,0,180],[150,0,0,0,90],[-150,0,0,0,-90],[0,-150,0,90,0],[0,150,0,-90,0]].forEach(([x,y,z,rx,ry])=>{
+ const f=document.createElement('div');f.className='face metalf';f.style.transform=`translate3d(${x}px,${y}px,${z}px) rotateX(${rx}deg) rotateY(${ry}deg)`;cube.appendChild(f)});
+// partículas determinísticas
+let sd=7;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+const P=[];for(let i=0;i<70;i++){const d=document.createElement('div');d.className='dia';const s=6+rnd()*16;d.style.width=d.style.height=s+'px';
+ P.push({el:d,x:(rnd()-.5)*5200,y:(rnd()-.5)*2600,z:400-rnd()*10500,r:rnd()*360,sp:.3+rnd()});d.style.opacity=.15+rnd()*.35;$('parts').appendChild(d)}
+// câmera: keyframes [t, x,y,z, ry, rx]
+const K=[[0,0,0,1300,0,0],[3.4,0,0,700,0,0],[5.6,500,-40,-700,-14,2],[8.4,-300,0,-2900,10,-2],[10.8,-450,-40,-3200,14,0],[13.4,0,0,-5300,0,0],[15.6,0,0,-5500,-4,0],[17.4,0,0,-8100,0,0],[20,0,0,-8450,0,0]];
+function cam(t){let i=0;while(i<K.length-2&&t>K[i+1][0])i++;const a=K[i],b=K[i+1];const u=eio((t-a[0])/(b[0]-a[0]));
+ return a.slice(1).map((v,j)=>v+(b[j+1]-v)*u)}
+function render(t){
+ const [x,y,z,ry,rx]=cam(t);const drift=Math.sin(t*.7)*12;
+ $('world').style.transform=`translateZ(0) rotateX(${-rx}deg) rotateY(${ry}deg) translate3d(${-x+drift}px,${-y}px,${-z+1300}px)`;
+ // keep world origin: camera at z means objects shift by -z; base offset puts z=1300 at viewer distance
+ kin($('k1'),t,.2,.04,3.6);kin($('k2'),t,.75,.035,3.6);kin($('k3'),t,1.5,.02,3.6);
+ kin($('k4'),t,4.6,.035,8.0);kin($('k5'),t,17.6,.025);
+ $('cube').style.transform=`translate3d(300px,-120px,-2000px) rotateX(${t*28}deg) rotateY(${t*40}deg)`;
+ const d=60000*eio((t-9.0)/2.2), st=Math.round(d/1000)*1000, pc=Math.min(100,Math.round(st*.08/12/283.8*100));
+ $('pv').textContent=pc+'%';$('pv').style.textShadow=pc>=100?'0 0 50px rgba(230,232,234,.45)':'none';
+ ['c1','c2','c3'].forEach((id,i)=>{const p=eo((t-12.4-i*.3)/.8);$(id).style.opacity=p});
+ $('ld').style.transform=`rotate(${45+(1-eo((t-16.8)/.9))*-180}deg)`;$('d5').style.opacity=eo((t-18.6)/.5);
+ const W=(a,b)=>Math.min(eo((t-a)/.6),1-cl((t-b)/.6));
+ [['p1',-1,4.2],['p2',3.0,9.4],['cube',3.0,9.4],['p2t',3.0,9.4],['p3',7.4,13.6],['p3t',8.7,13.6],['p5',16.4,99]].forEach(([id,a,b])=>$(id).style.opacity=W(a,b));
+ ['c1','c2','c3'].forEach(id=>$(id).style.opacity=Math.min(+$(id).style.opacity,1-cl((t-17.2)/.6)));
+ P.forEach(p=>{p.el.style.transform=`translate3d(${p.x}px,${p.y+Math.sin(t*p.sp+p.r)*40}px,${p.z}px) rotateZ(45deg) rotateY(${p.r+t*60*p.sp}deg)`});
+}
+window.render=render;
+</script></body></html>
